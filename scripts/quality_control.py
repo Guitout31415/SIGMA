@@ -6,52 +6,30 @@ from anndata import AnnData
 import scrublet as scr
 from pybiomart import Dataset
 from scipy.stats import median_abs_deviation
-import pandas as pd
-from typing import List
-from pybiomart import Dataset
+import os
 import argparse
+from typing import List
+from joblib import Parallel, delayed
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Quality control")
-    parser.add_argument("--", type=str, required=True)
-    parser.add_argument("--output_file", type=str, required=True)
+    parser = argparse.ArgumentParser(description="Quality control for scRNA-seq data")
+    parser.add_argument("--h5ad_file", type=str, required=True, help="Path to the h5ad file")
+    parser.add_argument("--output_file", type=str, required=True, help="Path to the output file")
+    parser.add_argument("--threads", type=int, default=1, help="Number of threads to use")
+    parser.add_argument("--percent_top", type=lambda x: int(x) if isinstance(x, str) else x, default=20, help="Percent of top genes to consider")
+    parser.add_argument("--nmads", type=lambda x: int(x) if isinstance(x, str) else x, default=5, help="Number of median absolute deviations to consider as outliers")
     return parser.parse_args()
 
-def rename_genes(genes: List[str] | pd.Index, 
-                 species: str = "hsapiens", 
-                 host: str = "http://www.ensembl.org") -> List[str]:
-    """Rename genes using Ensembl gene names.
-
-    Args:
-        genes (List[str] | pd.Index): List of gene names
-        species (str): Species (default: hsapiens)
-        host (str): Ensembl host (default: http://www.ensembl.org)
-    Returns:
-        List[str]: List of renamed gene names
-    Raises:
-        ValueError: If unable to connect to Ensembl host
-    """
-    assert isinstance(genes, (list, pd.Index)), "genes must be a list or pandas index"
-    assert all(isinstance(gene, str) for gene in genes), "all genes must be strings"
-    assert isinstance(species, str), "species must be a string"
-    assert isinstance(host, str), "host must be a string"
-
+def rename_genes(genes: List[str] | pd.Index, species: str = "hsapiens", host: str = "http://www.ensembl.org") -> List[str]:
     try:
-        dataset = Dataset(name=species+"_gene_ensembl", host=host)
-    except Exception as e:
-        raise ValueError(f"Unable to connect to Ensembl host: {e}")
-    
-    try:
+        dataset = Dataset(name=species + "_gene_ensembl", host=host)
         gene_mapping = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name'])
+        gene_mapping.index = gene_mapping["Gene stable ID"]
+        gene_mapping = gene_mapping[~pd.isna(gene_mapping["Gene name"])]
+        genes = [gene_mapping.loc[gene, "Gene name"] if gene in gene_mapping.index else gene for gene in genes]
+        return genes
     except Exception as e:
-        raise ValueError(f"Unable to retrieve Ensembl data: {e}")
-    
-    gene_mapping.index = gene_mapping["Gene stable ID"]
-    gene_mapping = gene_mapping[~pd.isna(gene_mapping["Gene name"])]
-
-    genes = [gene_mapping.loc[gene, "Gene name"] if gene in gene_mapping.index else gene for gene in genes]
-
-    return genes
+        raise ValueError(f"Ensembl connection or query error: {e}")
 
 def prepare_adata(adata):
     if adata.raw is not None:
@@ -59,87 +37,103 @@ def prepare_adata(adata):
         count_matrix = raw_adata[:, adata.var_names].X
     else:
         count_matrix = adata.X
-
     adata = sc.AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
     adata.var_names = rename_genes(adata.var_names)
     return adata
 
 def identify_special_genes(adata):
-    """Identify special genes (e.g., mitochondrial, ribosomal, hemoglobin) in the AnnData object.
-
-    :param adata: (sc.AnnData) AnnData object
-
-    :return: (sc.AnnData) AnnData object with special genes identified
-
-    Notes:
-    - The function identifies mitochondrial genes, ribosomal genes, and hemoglobin genes.
-    - The function adds columns to the AnnData object for each special gene type.
-
-    Examples:
-    >>> adata = identify_special_genes(adata)
-    # mt genes : 100
-    # ribo genes : 20
-    # hb genes : 5
-    """
-    adata.var["mt"] = adata.var_names.str.startswith("MT-")
+    adata.var["mt"] = adata.var_names.str.match(r"^MT-|mt-")
     adata.var["ribo"] = adata.var_names.str.match(r"^RP[LS]\d+")
     adata.var["hb"] = adata.var_names.str.match(r"^HB[^P]")
     print(f"- # mt genes : {adata.var.mt.sum()}")
     print(f"- # ribo genes : {adata.var.ribo.sum()}")
     print(f"- # hb genes : {adata.var.hb.sum()}")
-    return adata.copy() 
-
-def calculate_outlier(adata, metric, nmads):
-    """Calculate outliers for a given metric in the AnnData object.
-
-    :param adata: (sc.AnnData) AnnData object
-    :param metric: (str) Metric to calculate outliers
-    :param nmads: (int) Number of median absolute deviations to consider as outliers
-
-    :return: (np.ndarray) Boolean array indicating outliers
-
-    Notes:
-    - The function calculates outliers based on the median and median absolute deviation.
-    - The function returns a boolean array indicating the outliers for the given metric.
-
-    Examples:
-    >>> calculate_outlier(adata, "log1p_total_counts", 5)
-    array([False, False, False, ..., False, False, False])
-    """
-    M = adata.obs[metric]
-    med = np.median(M)
-    mad = median_abs_deviation(M)
-    lower_bound = med - nmads * mad
-    upper_bound = med + nmads * mad
-    return (M < lower_bound) | (M > upper_bound)
-
-def run_scrublet(adata):
-    """Run Scrublet to identify doublets in the AnnData object.
-
-    :param adata: (sc.AnnData) AnnData object
-
-    :return: (sc.AnnData) AnnData object with doublet scores
-    """
-    scrub = scr.Scrublet(adata.X)
-    doublet_scores, _ = scrub.scrub_doublets(verbose=False)
-    adata.obs["doublet_score"] = doublet_scores
-    try:
-        # Try automatic threshold detection first
-        doublet_mask = scrub.call_doublets()
-        print(f"Automatically identified doublet score threshold: {scrub.threshold_}")
-    except Exception as e:
-        print(f"Warning: {str(e)}")
-        # Set a conservative manual threshold if automatic detection fails
-        threshold = 0.25  # Conservative default threshold
-        doublet_mask = scrub.call_doublets(threshold=threshold)
-        print(f"Using manual doublet score threshold: {threshold}")
-
-    adata.obs["doublet_class"] = doublet_mask
-    adata.obs["doublet_class"] = (
-        adata.obs["doublet_class"].astype(str).astype("category")
-    )
-    # Filter doublets
-    adata = adata[adata.obs["doublet_class"] == "False"].copy()
     return adata.copy()
 
+def calculate_outlier_vector(M, nmads):
+    med = np.median(M)
+    mad = median_abs_deviation(M)
+    lower = med - nmads * mad
+    upper = med + nmads * mad
+    return (M < lower) | (M > upper)
+
+def run_scrublet(adata, n_jobs=1):
+    if adata.n_obs > 10000:
+        print("Large dataset, running Scrublet in batches...")
+        batch_size = int(np.ceil(adata.n_obs / n_jobs))
+        batches = [adata[i:i+batch_size] for i in range(0, adata.n_obs, batch_size)]
+        def process_batch(batch):
+            scrub = scr.Scrublet(batch.X)
+            scores, _ = scrub.scrub_doublets(verbose=False)
+            try:
+                mask = scrub.call_doublets()
+            except:
+                mask = scrub.call_doublets(threshold=0.25)
+            return scores, mask
+        results = Parallel(n_jobs=n_jobs)(delayed(process_batch)(b) for b in batches)
+        scores = np.concatenate([r[0] for r in results])
+        masks = np.concatenate([r[1] for r in results])
+    else:
+        scrub = scr.Scrublet(adata.X)
+        scores, _ = scrub.scrub_doublets(verbose=False)
+        try:
+            masks = scrub.call_doublets()
+            print(f"Automatically identified doublet score threshold: {scrub.threshold_}")
+        except:
+            masks = scrub.call_doublets(threshold=0.25)
+            print("Using manual doublet score threshold: 0.25")
+    adata.obs["doublet_score"] = scores
+    adata.obs["doublet_class"] = pd.Categorical(masks.astype(str))
+    adata = adata[adata.obs["doublet_class"] == "False"].copy()
+    return adata
+
 if __name__ == "__main__":
+    args = parse_args()
+
+    # Parallel thread control
+    os.environ["OMP_NUM_THREADS"] = str(args.threads)
+    os.environ["OPENBLAS_NUM_THREADS"] = str(args.threads)
+    os.environ["MKL_NUM_THREADS"] = str(args.threads)
+    os.environ["NUMEXPR_NUM_THREADS"] = str(args.threads)
+
+    adata = sc.read_h5ad(args.h5ad_file)
+
+    print("===============================")
+    print("Quality control...")
+
+    adata = prepare_adata(adata)
+    print(f"Initial number of cells: {adata.n_obs}")
+    adata = identify_special_genes(adata)
+
+    print("Computing quality control metrics...")
+    sc.pp.calculate_qc_metrics(
+        adata,
+        qc_vars=["mt", "ribo", "hb"],
+        inplace=True,
+        percent_top=[args.percent_top],
+        log1p=True
+    )
+
+    print("Detecting outliers...")
+    metrics = [
+        "log1p_total_counts",
+        "log1p_n_genes_by_counts",
+        f"pct_counts_in_top_{args.percent_top}_genes"
+    ]
+    outlier_results = Parallel(n_jobs=args.threads)(
+        delayed(calculate_outlier_vector)(adata.obs[m], args.nmads) for m in metrics
+    )
+    adata.obs["outlier"] = np.any(outlier_results, axis=0)
+    adata.obs["mt_outlier"] = calculate_outlier_vector(
+        adata.obs["pct_counts_mt"], 3
+    ) | (adata.obs["pct_counts_mt"] > 8)
+
+    adata = adata[(~adata.obs.outlier) & (~adata.obs.mt_outlier)].copy()
+    print(f" - Number of cells after filtering low quality cells: {adata.n_obs}")
+
+    print("Detecting doublets...")
+    adata = run_scrublet(adata, n_jobs=args.threads)
+
+    print(f"Final number of cells: {adata.n_obs}")
+    print(f"Saving to {args.output_file}")
+    adata.write(args.output_file)
