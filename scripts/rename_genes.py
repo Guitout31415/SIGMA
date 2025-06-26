@@ -21,7 +21,6 @@ def rename_genes(genes: List[str] | pd.Index,
     Args:
         genes (List[str] | pd.Index): List of gene names
         species (str): Species (default: hsapiens)
-        host (str): Ensembl host (default: http://www.ensembl.org)
     Returns:
         List[str]: List of renamed gene names
     Raises:
@@ -33,18 +32,28 @@ def rename_genes(genes: List[str] | pd.Index,
     assert isinstance(host, str), "host must be a string"
 
     try:
-        dataset = Dataset(name=species+"_gene_ensembl", host=host)
+        dataset = Dataset(name=species+"_gene_ensembl", host="http://www.ensembl.org")
     except Exception as e:
         raise ValueError(f"Unable to connect to Ensembl host: {e}")
     
     try:
-        gene_mapping = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name'])
+        gene_mapping = dataset.query(attributes=['ensembl_gene_id',
+                                                 'external_gene_name',
+                                                 'hgnc_symbol',
+                                                 'external_synonym'])
     except Exception as e:
         raise ValueError(f"Unable to retrieve Ensembl data: {e}")
     
-    gene_mapping.index = gene_mapping["Gene stable ID"]
-    gene_mapping = gene_mapping[~pd.isna(gene_mapping["Gene name"])]
+    df_converter = pd.DataFrame(columns=results.columns)
+    for gene in gene_list:
+        mask = results.eq(gene).any(axis=1)
+        df_converter = pd.concat([df_converter, results[mask]], ignore_index=True)
+    df_converter
 
-    genes = [gene_mapping.loc[gene, "Gene name"] if gene in gene_mapping.index else gene for gene in genes]
+    gene_names = []
+    for gene in gene_list:
+        mask = results.eq(gene).any(axis=1)
+        gene_names += results[mask]["Gene name"].dropna().unique().tolist()
+    gene_names
 
     return genes

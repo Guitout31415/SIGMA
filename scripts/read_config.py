@@ -35,24 +35,26 @@ def read_config(path: str) -> Dict[str, Any]:
     config = dict()
     section = None
     list_sections = {"Metadata", "Candidate", "Markers"}
-    dict_sections = {"Thresholds", "Folder", "Optional"}
+    dict_sections = {"Thresholds", "Folder", "Options"}
 
     try:
         with open(path, encoding="utf-8") as f:
             for lineno, line in enumerate(f, 1):
                 line = line.strip()
                 if line.startswith("["):
-                    section = line[1:-1]
+                    section = line[1:-1] # New section detected, store its name (without brackets) 
                     continue
+                # Skip lines outside a section, empty lines, or comments
                 if not section or not line or line.isspace() or line.startswith(("#", "//")):
                     continue
                 if section in list_sections:
-                    config.setdefault(section, []).append(line)
+                    config.setdefault(section, []).append(line) # Directly add the line to the section's list
                 elif section in dict_sections:
                     if " = " not in line:
+                        # Line must be in key = value format, otherwise raise explicit error
                         raise ValueError(f"Malformed line at line {lineno} in section '{section}': '{line}'")
                     key, value = line.split(" = ", 1)
-                    # Supprimer le commentaire à la fin de la valeur s'il y en a un
+                    # Remove any comment after the value (everything after a #)
                     value = value.split("#", 1)[0].strip()
                     config.setdefault(section, dict())[key.strip()] = value
                 else:
