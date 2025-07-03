@@ -6,7 +6,6 @@ import anndata as ad
 import os
 import pandas as pd
 import json
-from plot_flux_graph import *
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Merge multiple h5ad study files into a single dataset with common genes.")

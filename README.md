@@ -72,7 +72,13 @@ assign_threshold = auto2
 Run the pipeline with Snakemake:
 
 ```bash
-snakemake --cores 4 --config file=config_mk.conf
+snakemake \
+  --config file=config_mk.conf threads=8 mem_mb=200000 \
+  --cores 50 \
+  --resources mem_mb=700000 \
+  --printshellcmds \
+  --latency-wait 60 \
+  -p
 ```
 
 - Adjust `--cores` as needed.
