@@ -42,11 +42,10 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
 
     # 3. Mapping : assignation des colonnes existantes
     mapping = {}
-    col1, col2 = st.columns(2)
+    st.markdown("### Mapping des colonnes")
     for std in standards_list:
         suggestion = difflib.get_close_matches(std, obs.columns, n=1, cutoff=0.6)
-        with col1:
-            col = st.selectbox(f"{std}", ["(aucune)"] + list(obs.columns), index=1 if suggestion else 0, key=f"{std}_{data_file}_{idx}")
+        col = st.selectbox(f"{std}", ["(aucune)"] + list(obs.columns), index=1 if suggestion else 0, key=f"{std}_{data_file}_{idx}")
         mapping[std] = col if col != "(aucune)" else None
 
     # Create the output directory if it doesn't exist
@@ -71,10 +70,9 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
             new_adata.write(export_path)
             st.success(f"Fichier {export_path} sauvegardé avec succès.")
 
-    # 6. Aperçu du tableau obs (paginé)
-    with col2:
-        st.markdown("### Aperçu de adata.obs")
-        st.dataframe(obs.head(20).reset_index(drop=True), use_container_width=True)
+    # 6. Aperçu du tableau obs (pleine largeur)
+    st.markdown("### Aperçu de adata.obs")
+    st.dataframe(obs.head(10).reset_index(drop=True), use_container_width=True, width=800)
 
 if uploaded_files:
     tabs = st.tabs([os.path.basename(f.name) for f in uploaded_files])

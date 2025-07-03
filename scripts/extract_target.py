@@ -21,7 +21,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--plot_extracted", type=bool, default=False)
     parser.add_argument("--plot_folder", type=str, default=None)
     parser.add_argument("--species", type=str, default="hsapiens")
-    parser.add_argument("--n_jobs", type=int, default=-1)
     return parser.parse_args()
 
 def compute_expression(adata):
@@ -38,15 +37,17 @@ def get_all_gene_aliases(gene_list, species="hsapiens"):
                                         'external_gene_name',
                                         'hgnc_symbol',
                                         'external_synonym'])
+    results_lower = results.applymap(lambda x: str(x).lower() if pd.notnull(x) else x)
     all_aliases = set()
     for gene in gene_list:
-        mask = results.eq(gene).any(axis=1)
+        gene_lower = gene.lower()
+        mask = results_lower.eq(gene_lower).any(axis=1)
         all_aliases |= set(results[mask].values.flatten().tolist())
     return all_aliases
 
 def extract_target(adata, study_name, candidate_genes, assign_genes,
                    min_genes_detected, gene_detection_threshold, assign_threshold,
-                   plot_extracted=False, plot_folder=None, species="hsapiens", n_jobs=-1):
+                   plot_extracted=False, plot_folder=None, species="hsapiens"):
 
     candidate_aliases = get_all_gene_aliases(candidate_genes, species=species)
     assign_aliases = get_all_gene_aliases(assign_genes, species=species)
@@ -54,6 +55,8 @@ def extract_target(adata, study_name, candidate_genes, assign_genes,
     candidate_genes_avail = candidate_aliases & set(adata.var_names)
     assign_genes_avail = assign_aliases & set(adata.var_names)
 
+    print(f"Candidate genes available : {candidate_genes_avail}")
+    print(f"Assign genes available : {assign_genes_avail}")
     print(f"Keep cells that express at least {int(min_genes_detected)} candidate genes, each with occurrence >= {int(gene_detection_threshold)}.")
 
     adata_copy = adata.copy()
@@ -88,39 +91,13 @@ def extract_target(adata, study_name, candidate_genes, assign_genes,
     if plot_extracted:
         plot_path = plot_folder + f"/{study_name}_extracted.png"
         os.makedirs(os.path.dirname(plot_path), exist_ok=True)
-        print("Plot PCA and UMAP...")
+        print("Plot UMAP...")
         if "X_pca" not in candidate_expressed.obsm:
             sc.tl.pca(candidate_expressed)
         if "X_umap" not in candidate_expressed.obsm:
             sc.pp.neighbors(candidate_expressed)
             sc.tl.umap(candidate_expressed)
-        var_exp = candidate_expressed.uns.get("pca", {}).get("variance_ratio", None)
-        fig, ax = plt.subplots(2, 2, figsize=(15, 12))
-
-        # PCA plots
-        sc.pl.pca(
-            candidate_expressed,
-            color="mean_expr",
-            cmap="viridis",
-            size=50,
-            ax=ax[0, 0],
-            show=False,
-            title="PCA colored by mean expression of candidate genes among candidate cells"
-        )
-        ax[0, 0].set_xlabel(f"PC1 ({var_exp[0]*100:.1f}%)")
-        ax[0, 0].set_ylabel(f"PC2 ({var_exp[1]*100:.1f}%)")
-
-        sc.pl.pca(
-            candidate_expressed,
-            color="is_target",
-            size=50,
-            ax=ax[0, 1],
-            show=False,
-            title=f"PCA colored by cell status (mean expression > {assign_threshold_val:.3f})"
-        )
-        ax[0, 1].set_xlabel(f"PC1 ({var_exp[0]*100:.1f}%)")
-        ax[0, 1].set_ylabel(f"PC2 ({var_exp[1]*100:.1f}%)")
-        ax[0, 1].legend(title="is target ?")
+        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
 
         # UMAP plots
         sc.pl.umap(
@@ -128,7 +105,7 @@ def extract_target(adata, study_name, candidate_genes, assign_genes,
             color="mean_expr",
             cmap="viridis",
             size=50,
-            ax=ax[1, 0],
+            ax=ax[0],
             show=False,
             title="UMAP colored by mean expression of candidate genes among candidate cells"
         )
@@ -136,13 +113,13 @@ def extract_target(adata, study_name, candidate_genes, assign_genes,
             candidate_expressed,
             color="is_target",
             size=50,
-            ax=ax[1, 1],
+            ax=ax[1],
             show=False,
             title=f"UMAP colored by cell status (mean expression > {assign_threshold_val:.3f})"
         )
-        ax[1, 1].legend(title="is target ?")
+        ax[1].legend(title="is target ?")
 
-        print(f"Save PCA and UMAP plot to {plot_path}")
+        print(f"Save UMAP plot to {plot_path}")
         fig.tight_layout()
         fig.savefig(plot_path, dpi=300, bbox_inches="tight")
 
@@ -167,8 +144,7 @@ if __name__ == "__main__":
         assign_threshold=args.assign_threshold,
         plot_extracted=args.plot_extracted,
         plot_folder=args.plot_folder,
-        species=args.species,
-        n_jobs=args.n_jobs
+        species=args.species
     )
     print("-------------------------------")
     print(f"Saving in {args.output_file}")

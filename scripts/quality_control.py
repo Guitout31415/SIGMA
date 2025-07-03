@@ -9,6 +9,7 @@ from scipy.stats import median_abs_deviation
 import os
 import argparse
 from typing import List
+from rename_genes import rename_genes
 from joblib import Parallel, delayed
 
 def parse_args():
@@ -18,33 +19,24 @@ def parse_args():
     parser.add_argument("--threads", type=int, default=1, help="Number of threads to use")
     parser.add_argument("--percent_top", type=lambda x: int(x) if isinstance(x, str) else x, default=20, help="Percent of top genes to consider")
     parser.add_argument("--nmads", type=lambda x: int(x) if isinstance(x, str) else x, default=5, help="Number of median absolute deviations to consider as outliers")
+    parser.add_argument("--species", type=str, default="hsapiens", help="Species of the data")
     return parser.parse_args()
 
-def rename_genes(genes: List[str] | pd.Index, species: str = "hsapiens", host: str = "http://www.ensembl.org") -> List[str]:
-    try:
-        dataset = Dataset(name=species + "_gene_ensembl", host=host)
-        gene_mapping = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name'])
-        gene_mapping.index = gene_mapping["Gene stable ID"]
-        gene_mapping = gene_mapping[~pd.isna(gene_mapping["Gene name"])]
-        genes = [gene_mapping.loc[gene, "Gene name"] if gene in gene_mapping.index else gene for gene in genes]
-        return genes
-    except Exception as e:
-        raise ValueError(f"Ensembl connection or query error: {e}")
-
-def prepare_adata(adata):
+def prepare_adata(adata, species):
     if adata.raw is not None:
         raw_adata = adata.raw.to_adata()
         count_matrix = raw_adata[:, adata.var_names].X
     else:
         count_matrix = adata.X
+    genes = rename_genes(adata.var_names, species)
     adata = sc.AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
-    adata.var_names = rename_genes(adata.var_names)
+    adata.var_names = genes
     return adata
 
 def identify_special_genes(adata):
-    adata.var["mt"] = adata.var_names.str.match(r"^MT-|mt-")
+    adata.var["mt"] = adata.var_names.str.match(r"^MT-|^mt-")
     adata.var["ribo"] = adata.var_names.str.match(r"^RP[LS]\d+")
-    adata.var["hb"] = adata.var_names.str.match(r"^HB[^P]")
+    adata.var["hb"] = adata.var_names.str.match(r"^HB[^P]|^HB[AB]")
     print(f"- # mt genes : {adata.var.mt.sum()}")
     print(f"- # ribo genes : {adata.var.ribo.sum()}")
     print(f"- # hb genes : {adata.var.hb.sum()}")
@@ -101,7 +93,7 @@ if __name__ == "__main__":
     print("===============================")
     print("Quality control...")
 
-    adata = prepare_adata(adata)
+    adata = prepare_adata(adata, args.species)
     print(f"Initial number of cells: {adata.n_obs}")
     adata = identify_special_genes(adata)
 

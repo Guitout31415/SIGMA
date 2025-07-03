@@ -24,7 +24,7 @@ MEM_MB = int(config.get("mem_mb", 16000))
 rule all:
     input:
         CONFIG["Folder"]["output_folder"] + "/merged.h5ad",
-        # expand(os.path.join(CONFIG["Folder"]["output_folder"], "logs/{study}.log"), study=STUDIES_NAMES)
+        expand(os.path.join(CONFIG["Folder"]["output_folder"], "logs/{study}.log"), study=STUDIES_NAMES)
     threads: THREADS
 
 rule merge_studies:
@@ -83,8 +83,8 @@ rule extract_target:
         plot_extracted=CONFIG['Options']['plot_extracted'],
         plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots")
     log:
-        stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/EXTRACT_{study}.stderr"),
-        stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/EXTRACT_{study}.stdout")
+        stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stderr"),
+        stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
     shell:
         """
         python scripts/extract_target.py \
@@ -112,10 +112,11 @@ rule quality_control:
         mem_mib=MEM_MB
     params:
         percent_top=CONFIG['Options']['percent_top'],
-        nmads=CONFIG['Options']['nmads']
+        nmads=CONFIG['Options']['nmads'],
+        species=CONFIG['Options']['species']
     log:
-        stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/QC_{study}.stderr"),
-        stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/QC_{study}.stdout")
+        stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr"),
+        stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout")
     shell:
         """
         OMP_NUM_THREADS={threads} OPENBLAS_NUM_THREADS={threads} \
@@ -124,15 +125,17 @@ rule quality_control:
             --h5ad_file "{input}" \
             --output_file "{output}" \
             --percent_top {params.percent_top} \
-            --nmads {params.nmads} >> "{log.stdout}" 2>> "{log.stderr}"
+            --nmads {params.nmads} \
+            --species {params.species} >> "{log.stdout}" 2>> "{log.stderr}"
         """
 
 rule merge_logs:
     input:
-        i1=os.path.join(CONFIG["Folder"]["output_folder"], "logs/QC_{study}.stdout"),
-        i2=os.path.join(CONFIG["Folder"]["output_folder"], "logs/EXTRACT_{study}.stdout"),
-        i3=os.path.join(CONFIG["Folder"]["output_folder"], "logs/EXTRACT_{study}.stderr"),
-        i4=os.path.join(CONFIG["Folder"]["output_folder"], "logs/QC_{study}.stderr")
+        merged_file=CONFIG["Folder"]["output_folder"] + "/merged.h5ad",
+        i1=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout"),
+        i2=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout"),
+        i3=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stderr"),
+        i4=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr")
     output:
         os.path.join(CONFIG["Folder"]["output_folder"], "logs/{study}.log")
     threads: 1
