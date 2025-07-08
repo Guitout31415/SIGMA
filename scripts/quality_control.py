@@ -8,7 +8,6 @@ from pybiomart import Dataset
 from scipy.stats import median_abs_deviation
 import os
 import argparse
-from typing import List
 from rename_genes import rename_genes
 from joblib import Parallel, delayed
 

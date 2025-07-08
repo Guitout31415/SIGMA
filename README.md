@@ -76,7 +76,6 @@ snakemake \
   --config file=config_mk.conf threads=8 mem_mb=200000 \
   --cores 50 \
   --resources mem_mb=700000 \
-  --printshellcmds \
   --latency-wait 60 \
   -p
 ```
@@ -97,12 +96,6 @@ snakemake \
 - Merged dataset: `data/results/merged.h5ad`
 - Logs: `data/results/logs/`
 - Plots (if enabled): as specified in config
-
-## Example
-
-```bash
-snakemake --cores 4 --config file=config_mk.conf
-```
 
 ## Troubleshooting
 

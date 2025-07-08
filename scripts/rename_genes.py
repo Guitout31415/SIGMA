@@ -40,7 +40,6 @@ def rename_genes(gene_list: List[str] | pd.Index,
         results = dataset.query(attributes=['ensembl_gene_id',
                                             'external_gene_name',
                                             'hgnc_symbol',
-                                            'mgi_symbol',
                                             'external_synonym'])
     except Exception as e:
         raise ValueError(f"Unable to retrieve Ensembl data: {e}")

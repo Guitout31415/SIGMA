@@ -129,17 +129,31 @@ rule quality_control:
             --species {params.species} >> "{log.stdout}" 2>> "{log.stderr}"
         """
 
+rule convert_to_h5ad:
+    input:
+        os.path.join(CONFIG["Folder"]["input_folder"], "{study}.rds")
+    output:
+        os.path.join(CONFIG["Folder"]["input_folder"], "{study}.h5ad")
+    threads: THREADS
+    resources:
+        mem_mb=MEM_MB,
+        mem_mib=MEM_MB
+    shell:
+        """
+        python scripts/convert_to_h5ad.R \
+            --input_file "{input}" \
+            --output_file "{output}"
+        """
+
 rule merge_logs:
     input:
         merged_file=CONFIG["Folder"]["output_folder"] + "/merged.h5ad",
         i1=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout"),
-        i2=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout"),
-        i3=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stderr"),
-        i4=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr")
+        i2=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
     output:
         os.path.join(CONFIG["Folder"]["output_folder"], "logs/{study}.log")
     threads: 1
     shell:
         """
-        cat {input.i1} {input.i2} > {output} && rm {input.i1} {input.i2} {input.i3} {input.i4}
+        cat {input.i1} {input.i2} > {output}
         """

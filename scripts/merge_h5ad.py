@@ -1,11 +1,8 @@
 import shutup; shutup.please()
-import sys
 import scanpy as sc
 import argparse
 import anndata as ad
 import os
-import pandas as pd
-import json
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Merge multiple h5ad study files into a single dataset with common genes.")
@@ -26,6 +23,7 @@ if __name__ == "__main__":
     for study in studies_path:
         study_name = study.split(".")[0]
         adata = sc.read_h5ad(os.path.join(args.study_folder, study))
+        adata = adata[adata.obs['is_target']]
         if not adata.var_names.is_unique:
             duplicates = adata.var_names[adata.var_names.duplicated()].tolist()
             adata = adata[:, ~adata.var_names.duplicated(keep='first')]
