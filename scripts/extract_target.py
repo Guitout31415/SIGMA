@@ -1,7 +1,5 @@
 import shutup; shutup.please()
 import scanpy as sc
-import anndata as ad
-import numpy as np
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
@@ -27,7 +25,7 @@ def compute_expression(adata):
     sc.pp.normalize_total(adata, target_sum=1e6)
     sc.pp.log1p(adata)
     sc.pp.pca(adata, svd_solver='arpack')
-    sc.pp.neighbors(adata, n_neighbors=10, n_pcs=20)
+    sc.pp.neighbors(adata, n_neighbors=10, n_pcs=4)
     sc.tl.umap(adata)
     return adata.copy()
 
@@ -123,9 +121,8 @@ def extract_target(adata, study_name, candidate_genes, assign_genes,
         fig.tight_layout()
         fig.savefig(plot_path, dpi=300, bbox_inches="tight")
 
-    target_barcodes = candidate_expressed.obs_names[candidate_expressed.obs["is_target"]].tolist()
-    adata = adata[adata.obs_names.isin(target_barcodes)].copy()
-    return adata
+    # Retourner les candidats avec la colonne is_target
+    return candidate_expressed
 
 if __name__ == "__main__":
     args = parse_arguments()
