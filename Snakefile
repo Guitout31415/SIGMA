@@ -78,7 +78,7 @@ rule extract_target:
         assign_genes=CONFIG['Markers'],
         min_genes_detected=float(CONFIG['Thresholds']['min_genes_detected']),
         gene_detection_threshold=float(CONFIG['Thresholds']['gene_detection_threshold']),
-        assign_threshold=CONFIG['Thresholds']['assign_threshold'],
+        n_components=CONFIG['Thresholds']['n_components'],
         species=CONFIG['Options']['species'],
         plot_extracted=CONFIG['Options']['plot_extracted'],
         plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots")
@@ -95,7 +95,7 @@ rule extract_target:
             --assign_genes {params.assign_genes} \
             --min_genes_detected {params.min_genes_detected} \
             --gene_detection_threshold {params.gene_detection_threshold} \
-            --assign_threshold {params.assign_threshold} \
+            --n_components {params.n_components} \
             --species {params.species} \
             --plot_extracted {params.plot_extracted} \
             --plot_folder {params.plot_folder} >> "{log.stdout}" 2>> "{log.stderr}"
