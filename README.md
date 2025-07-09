@@ -50,18 +50,6 @@ Edit the `config_mk.conf` file to specify:
 - **[Folder]**: Input/output folder paths
 - **[Options]**: Species, QC parameters, plotting options
 
-Example (excerpt):
-
-```
-[Folder]
-input_folder = /path/to/data/raw
-output_folder = /path/to/data/results
-
-[Thresholds]
-min_genes_detected = 1
-assign_threshold = auto2
-```
-
 ## Data Organization
 
 - Place your raw single-cell files (`.h5ad`, `.rds`, `.csv`) in `data/raw/` (or the folder specified in config).
