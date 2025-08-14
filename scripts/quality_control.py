@@ -10,6 +10,8 @@ import os
 import argparse
 from rename_genes import rename_genes
 from joblib import Parallel, delayed
+import time
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Quality control for scRNA-seq data")
@@ -18,16 +20,15 @@ def parse_args():
     parser.add_argument("--threads", type=int, default=1, help="Number of threads to use")
     parser.add_argument("--percent_top", type=lambda x: int(x) if isinstance(x, str) else x, default=20, help="Percent of top genes to consider")
     parser.add_argument("--nmads", type=lambda x: int(x) if isinstance(x, str) else x, default=5, help="Number of median absolute deviations to consider as outliers")
+    parser.add_argument("--do_QC", type=str, default="True", help="Whether to perform quality control")
     parser.add_argument("--species", type=str, default="hsapiens", help="Species of the data")
     return parser.parse_args()
 
 def prepare_adata(adata, species):
-    if adata.raw is not None:
-        raw_adata = adata.raw.to_adata()
-        count_matrix = raw_adata[:, adata.var_names].X
-    else:
-        count_matrix = adata.X
+    count_matrix = adata.X
     genes = rename_genes(adata.var_names, species)
+    # Convert gene names to uppercase
+    genes = pd.Series(genes).str.upper()
     adata = sc.AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
     adata.var_names = genes
     return adata
@@ -49,7 +50,7 @@ def calculate_outlier_vector(M, nmads):
     return (M < lower) | (M > upper)
 
 def run_scrublet(adata, n_jobs=1):
-    if adata.n_obs > 10000:
+    if adata.n_obs > 10_000:
         print("Large dataset, running Scrublet in batches...")
         batch_size = int(np.ceil(adata.n_obs / n_jobs))
         batches = [adata[i:i+batch_size] for i in range(0, adata.n_obs, batch_size)]
@@ -81,50 +82,68 @@ def run_scrublet(adata, n_jobs=1):
 if __name__ == "__main__":
     args = parse_args()
 
-    # Parallel thread control
-    os.environ["OMP_NUM_THREADS"] = str(args.threads)
-    os.environ["OPENBLAS_NUM_THREADS"] = str(args.threads)
-    os.environ["MKL_NUM_THREADS"] = str(args.threads)
-    os.environ["NUMEXPR_NUM_THREADS"] = str(args.threads)
+    # Check if quality control is enabled
+    if args.do_QC == "False":
+        print("Quality control is disabled. Exiting...")
+        adata = sc.read_h5ad(args.h5ad_file)
+        adata = prepare_adata(adata, args.species)
+        adata.write(args.output_file)
+    else:
+        # Start timer
+        start_time = time.time()
 
-    adata = sc.read_h5ad(args.h5ad_file)
+        # Parallel thread control
+        os.environ["OMP_NUM_THREADS"] = str(args.threads)
+        os.environ["OPENBLAS_NUM_THREADS"] = str(args.threads)
+        os.environ["MKL_NUM_THREADS"] = str(args.threads)
+        os.environ["NUMEXPR_NUM_THREADS"] = str(args.threads)
 
-    print("===============================")
-    print("Quality control...")
+        adata = sc.read_h5ad(args.h5ad_file)
+        print("===============================")
+        print("Quality control...")
 
-    adata = prepare_adata(adata, args.species)
-    print(f"Initial number of cells: {adata.n_obs}")
-    adata = identify_special_genes(adata)
+        adata = prepare_adata(adata, args.species)
+        print(f"Initial number of cells: {adata.n_obs}")
+        adata = identify_special_genes(adata)
 
-    print("Computing quality control metrics...")
-    sc.pp.calculate_qc_metrics(
-        adata,
-        qc_vars=["mt", "ribo", "hb"],
-        inplace=True,
-        percent_top=[args.percent_top],
-        log1p=True
-    )
+        print("Computing quality control metrics...")
+        sc.pp.calculate_qc_metrics(
+            adata,
+            qc_vars=["mt", "ribo", "hb"],
+            inplace=True,
+            percent_top=[args.percent_top],
+            log1p=True
+        )
 
-    print("Detecting outliers...")
-    metrics = [
-        "log1p_total_counts",
-        "log1p_n_genes_by_counts",
-        f"pct_counts_in_top_{args.percent_top}_genes"
-    ]
-    outlier_results = Parallel(n_jobs=args.threads)(
-        delayed(calculate_outlier_vector)(adata.obs[m], args.nmads) for m in metrics
-    )
-    adata.obs["outlier"] = np.any(outlier_results, axis=0)
-    adata.obs["mt_outlier"] = calculate_outlier_vector(
-        adata.obs["pct_counts_mt"], 3
-    ) | (adata.obs["pct_counts_mt"] > 8)
+        print("Detecting outliers...")
+        metrics = [
+            "log1p_total_counts",
+            "log1p_n_genes_by_counts",
+            f"pct_counts_in_top_{args.percent_top}_genes"
+        ]
 
-    adata = adata[(~adata.obs.outlier) & (~adata.obs.mt_outlier)].copy()
-    print(f" - Number of cells after filtering low quality cells: {adata.n_obs}")
+        outlier_results = Parallel(n_jobs=args.threads)(
+            delayed(calculate_outlier_vector)(adata.obs[m], args.nmads) for m in metrics
+        )
 
-    print("Detecting doublets...")
-    adata = run_scrublet(adata, n_jobs=args.threads)
+        adata.obs["outlier"] = np.any(outlier_results, axis=0)
+        adata.obs["mt_outlier"] = calculate_outlier_vector(
+            adata.obs["pct_counts_mt"], 3
+        ) | (adata.obs["pct_counts_mt"] > 8)
 
-    print(f"Final number of cells: {adata.n_obs}")
-    print(f"Saving to {args.output_file}")
-    adata.write(args.output_file)
+        adata = adata[(~adata.obs.outlier) & (~adata.obs.mt_outlier)].copy()
+        print(f" - Number of cells after filtering low quality cells: {adata.n_obs}")
+
+        print("Detecting doublets...")
+        adata = run_scrublet(adata, n_jobs=args.threads)
+
+
+        print(f"Final number of cells: {adata.n_obs}")
+
+
+        execution_time = time.time() - start_time
+        print(f"Total execution time: {execution_time:.4f} seconds")
+
+
+        print(f"Saving to {args.output_file}")
+        adata.write(args.output_file)

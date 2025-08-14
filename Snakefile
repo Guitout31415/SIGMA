@@ -1,3 +1,5 @@
+
+# Imports
 import os
 import re
 import sys
@@ -6,14 +8,17 @@ import shutup; shutup.please()
 sys.path.append("scripts")
 from read_config import read_config
 
-# Load configuration
+# Load configuration only once
 CONFIG = read_config(config.get("file", ""))
 
-# Extract studies from input folder
-STUDIES_FILES = [
-    f.name for f in os.scandir(CONFIG["Folder"]["input_folder"])
-    if re.search(r"\.(h5ad|csv|rds)$", f.name)
-]
+# Extract studies from input folder, only once
+def get_studies(input_folder):
+    return [
+        f.name for f in os.scandir(input_folder)
+        if re.search(r"\.(h5ad|rds)$", f.name)
+    ]
+
+STUDIES_FILES = get_studies(CONFIG["Folder"]["input_folder"])
 STUDIES_NAMES = [".".join(f.split(".")[:-1]) for f in STUDIES_FILES]
 
 # Resources
@@ -36,70 +41,72 @@ rule merge_studies:
     resources:
         mem_mb=MEM_MB
     shell:
-        """
-        python scripts/merge_h5ad.py \
-            --study_folder "{input[0]}" \
-            --output_file "{output}"
-        """
+        (
+            "python scripts/merge_h5ad.py "
+            "--study_folder '{input[0]}' "
+            "--output_file '{output}'"
+        )
 
 rule harmonize_metadata:
     input:
         expand(
-            os.path.join(CONFIG["Folder"]["output_folder"], "extracted/{study}.h5ad"),
+            os.path.join(CONFIG["Folder"]["output_folder"], "find/{study}.h5ad"),
             study=STUDIES_NAMES
         )
     output:
         directory(CONFIG["Folder"]["output_folder"] + "/harmonized")
     threads: THREADS
     resources:
-        mem_mb=MEM_MB
+        mem_mb=MEM_MB,
+        mem_mib=MEM_MB
     params: 
-        input_folder=CONFIG["Folder"]["output_folder"] + "/extracted",
+        input_folder=CONFIG["Folder"]["output_folder"] + "/find",
         columns_list=','.join(CONFIG["Metadata"])
     shell:
-        """
-        streamlit run scripts/harmonize_metada.py -- \
-            --input_folder {params.input_folder} \
-            --columns_list {params.columns_list} \
-            --outdir {output}
-        """
+        (
+            "streamlit run scripts/harmonize_metada.py -- "
+            "--input_folder {params.input_folder} "
+            "--columns_list {params.columns_list} "
+            "--outdir {output}"
+        )
 
-rule extract_target:
+rule find_target:
     input:
         os.path.join(CONFIG["Folder"]["output_folder"], "qc/{study}.h5ad")
     output:
-        os.path.join(CONFIG["Folder"]["output_folder"], "extracted/{study}.h5ad")
+        os.path.join(CONFIG["Folder"]["output_folder"], "find/{study}.h5ad")
     threads: THREADS
     resources:
         mem_mb=MEM_MB,
         mem_mib=MEM_MB
     params:
         candidate_genes=CONFIG['Candidate'],
-        assign_genes=CONFIG['Markers'],
+        marker_genes=CONFIG['Markers'],
+        exclude_genes=CONFIG['Exclude'],
         min_genes_detected=float(CONFIG['Thresholds']['min_genes_detected']),
         gene_detection_threshold=float(CONFIG['Thresholds']['gene_detection_threshold']),
-        n_components=CONFIG['Thresholds']['n_components'],
+        n_components_target=CONFIG['Thresholds']['n_components_target'],
+        n_components_exclu=CONFIG['Thresholds']['n_components_exclu'],
         species=CONFIG['Options']['species'],
-        plot_extracted=CONFIG['Options']['plot_extracted'],
         plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots")
     log:
         stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stderr"),
         stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
     shell:
-        """
-        python scripts/extract_target.py \
-            --h5ad_file "{input}" \
-            --output_file "{output}" \
-            --study_name {wildcards.study} \
-            --candidate_genes {params.candidate_genes} \
-            --assign_genes {params.assign_genes} \
-            --min_genes_detected {params.min_genes_detected} \
-            --gene_detection_threshold {params.gene_detection_threshold} \
-            --n_components {params.n_components} \
-            --species {params.species} \
-            --plot_extracted {params.plot_extracted} \
-            --plot_folder {params.plot_folder} >> "{log.stdout}" 2>> "{log.stderr}"
-        """
+        (
+            "python scripts/find_target.py "
+            "--h5ad_file '{input}' "
+            "--output_file '{output}' "
+            "--study_name {wildcards.study} "
+            "--candidate_genes {params.candidate_genes} "
+            "--marker_genes {params.marker_genes} "
+            "--min_genes_detected {params.min_genes_detected} "
+            "--gene_detection_threshold {params.gene_detection_threshold} "
+            "--n_components_target {params.n_components_target} "
+            "--n_components_exclu {params.n_components_exclu} "
+            "--species {params.species} "
+            "--plot_folder {params.plot_folder} >> '{log.stdout}' 2>> '{log.stderr}'"
+        )
 
 rule quality_control:
     input:
@@ -113,21 +120,23 @@ rule quality_control:
     params:
         percent_top=CONFIG['Options']['percent_top'],
         nmads=CONFIG['Options']['nmads'],
-        species=CONFIG['Options']['species']
+        species=CONFIG['Options']['species'],
+        do_QC=CONFIG['Options']['do_QC']
     log:
         stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr"),
         stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout")
     shell:
-        """
-        OMP_NUM_THREADS={threads} OPENBLAS_NUM_THREADS={threads} \
-        MKL_NUM_THREADS={threads} NUMEXPR_NUM_THREADS={threads} \
-        python scripts/quality_control.py \
-            --h5ad_file "{input}" \
-            --output_file "{output}" \
-            --percent_top {params.percent_top} \
-            --nmads {params.nmads} \
-            --species {params.species} >> "{log.stdout}" 2>> "{log.stderr}"
-        """
+        (
+            "OMP_NUM_THREADS={threads} OPENBLAS_NUM_THREADS={threads} "
+            "MKL_NUM_THREADS={threads} NUMEXPR_NUM_THREADS={threads} "
+            "python scripts/quality_control.py "
+            "--h5ad_file '{input}' "
+            "--output_file '{output}' "
+            "--percent_top {params.percent_top} "
+            "--nmads {params.nmads} "
+            "--do_QC {params.do_QC} "
+            "--species {params.species} >> '{log.stdout}' 2>> '{log.stderr}'"
+        )
 
 rule convert_to_h5ad:
     input:
@@ -139,11 +148,11 @@ rule convert_to_h5ad:
         mem_mb=MEM_MB,
         mem_mib=MEM_MB
     shell:
-        """
-        python scripts/convert_to_h5ad.R \
-            --input_file "{input}" \
-            --output_file "{output}"
-        """
+        (
+            "python scripts/convert_to_h5ad.R "
+            "--input_file '{input}' "
+            "--output_file '{output}'"
+        )
 
 rule merge_logs:
     input:
@@ -154,6 +163,6 @@ rule merge_logs:
         os.path.join(CONFIG["Folder"]["output_folder"], "logs/{study}.log")
     threads: 1
     shell:
-        """
-        cat {input.i1} {input.i2} > {output}
-        """
+        (
+            "cat {input.i1} {input.i2} > {output}"
+        )
