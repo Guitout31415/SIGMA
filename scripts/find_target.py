@@ -1,4 +1,3 @@
-import shutup; shutup.please()
 import scanpy as sc
 import pandas as pd
 import os
@@ -78,7 +77,7 @@ def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
     for gene in genes:
         gene_lower = gene.lower()
         # Find rows where the lowercase gene name appears in any column.
-        mask = results.applymap(lambda x: str(x).lower() == gene_lower if pd.notnull(x) else False).any(axis=1)
+        mask = results.apply(lambda row: row.astype(str).str.lower().eq(gene_lower).any(), axis=1)
         # Add all unique values from these rows to the set of aliases.
         all_aliases.update(results[mask].values.flatten().tolist())
     
@@ -238,6 +237,38 @@ def save_plots(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_fo
     fig.savefig(plot_path, dpi=300, bbox_inches="tight")
     print(f"Plots saved to: {plot_path}")
 
+def plot_exclude(adata: sc.AnnData, study_name: str, plot_folder: str):
+    plot_path = os.path.join(plot_folder, f"{study_name}_exclude_plot.png")
+
+    fig, axes = plt.subplots(2, 2, figsize=(20, 10))
+
+    sc.pl.umap(adata, color="marker_mean_expr", cmap="viridis", ax=axes[0, 0], size=50, show=False)
+    sc.pl.umap(adata, color="exclude_mean_expr", cmap="viridis", ax=axes[0, 1], size=50, show=False)
+    axes[0, 0].set_facecolor('lightgrey')
+    axes[0, 1].set_facecolor('lightgrey')
+
+    x = adata.obs["proba_exclu"]
+    y = adata.obs["proba_target"]
+    score = adata.obs["score"]
+    axes[1, 0].scatter(x, y, c=score, cmap='coolwarm', s=5)
+    axes[1, 0].set_xlabel("Alternative Probability")
+    axes[1, 0].set_ylabel("Target Probability")
+    axes[1, 0].set_xlim(-0.1, 1.1)
+    axes[1, 0].set_ylim(-0.1, 1.1)
+    axes[1, 0].set_box_aspect(1)
+
+
+    cbar = plt.colorbar(axes[1, 0].collections[0], ax=axes[1, 0], fraction=0.03, pad=0.04)
+    cbar.set_label("Score")
+
+    # Plot histogram of score
+    axes[1, 1].hist(adata.obs["score"], bins=100, color='blue', alpha=0.7)
+    axes[1, 1].set(title="Histogram of Score", xlabel="Score", ylabel="Number of Cells")
+    axes[1, 1].grid(True)
+
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=300, bbox_inches="tight")
+
 def find_target_cells(
     adata: sc.AnnData,
     study_name: str,
@@ -300,6 +331,7 @@ def find_target_cells(
 
     if candidate_cells.shape[0] == 0:
         print("No candidate cells found. Returning an empty AnnData object.")
+        candidate_cells.obs["proba_target"] = np.zeros(candidate_cells.shape[0])
         return candidate_cells
     
     print(f"Number of candidate cells: {candidate_cells.shape[0]} ({candidate_cells.shape[0]/adata.shape[0]*100:.2f}%)")
@@ -320,7 +352,6 @@ def find_target_cells(
     
     if exclude_genes_avail:
         print("\n--- 3bis. Fitting GMM for Exclude Genes ---")
-        print(f"Available exclude genes: {exclude_genes_avail}")
         
         exclude_df = candidate_cells[:, list(exclude_genes_avail)].to_df()
         candidate_cells.obs['exclude_mean_expr'] = exclude_df.mean(axis=1)
@@ -335,11 +366,11 @@ def find_target_cells(
     candidate_cells.obs["proba_target"] = probas_target[:, target_component]
 
     if exclude_genes_avail:
-        print("\n--- 4bis. Calculate probabilities for exclude genes ---")
+        print("--- 4bis. Calculate probabilities for exclude genes ---")
         exclude_component = np.argmax(gmm_exclude.means_.flatten())
         candidate_cells.obs["proba_exclu"] = probas_exclude[:, exclude_component]
 
-        print(f"--- 5. Calculate score and filter cells ---")
+        print(f"\n--- 5. Calculate score and filter cells ---")
         score = candidate_cells.obs["proba_target"] - candidate_cells.obs["proba_exclu"]
         candidate_cells.obs["score"] = score[candidate_cells.obs_names]
         # candidate_cells = candidate_cells[candidate_cells.obs["score"] > score_threshold]
@@ -347,7 +378,9 @@ def find_target_cells(
     # Plot results if a folder is specified
     if plot_folder:
         save_plots(candidate_cells, gmm_target, study_name, plot_folder, data_target)
-    
+        if exclude_genes_avail:
+            plot_exclude(candidate_cells, study_name, plot_folder)
+
     return candidate_cells
 
 def main():

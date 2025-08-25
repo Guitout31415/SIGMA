@@ -1,6 +1,6 @@
-# CellExtractor
+# SIGMA : Single-cell Identification using Gaussian Mixture Approach
 
-CellExtractor is a bioinformatics pipeline for automated extraction of targeted cell types from multiple heterogeneous single-cell transcriptomic datasets (formats supported: `.h5ad`, `.rds`, `.csv`). It is designed to simplify and accelerate integrative large-scale single-cell analyses.
+SIGMA is a bioinformatics pipeline for automated extraction of targeted cell types from multiple heterogeneous single-cell transcriptomic datasets (formats supported: `.h5ad`). It is designed to simplify and accelerate integrative large-scale single-cell analyses.
 
 ## Features
 
@@ -8,35 +8,17 @@ CellExtractor is a bioinformatics pipeline for automated extraction of targeted 
 - Extraction of target cell types based on user-defined gene markers
 - Harmonization and merging of multiple studies
 - Fully configurable via a single config file
-- Supports AnnData (`.h5ad`), RDS, and CSV input formats
-
-## Requirements
-
-- Linux or macOS
-- Python 3.8+
-- [Snakemake](https://snakemake.readthedocs.io/en/stable/) >=7.0
-- Python packages: `scanpy`, `anndata`, `numpy`, `matplotlib`, `scrublet`, `pybiomart`, `pandas`
-- R (optional, for `.rds` input)
-
-Install Python dependencies (example with pip):
-
-```bash
-pip install scanpy anndata numpy matplotlib scrublet pybiomart pandas
-```
-
-Install Snakemake (if not already):
-
-```bash
-pip install snakemake
-```
 
 ## Installation
 
 Clone the repository:
 
 ```bash
-git clone https://github.com/Guitout31415/CellExtractor.git
-cd CellExtractor
+git clone https://github.com/Guitout31415/SIGMA.git
+cd SIGMA
+conda env create -f environment.yml
+conda activate SIGMA
+pip install snakemake
 ```
 
 ## Configuration
@@ -46,13 +28,14 @@ Edit the `config_mk.conf` file to specify:
 - **[Metadata]**: Metadata fields to extract
 - **[Candidate]**: Candidate genes for initial filtering
 - **[Markers]**: Marker genes for final assignment
+- **[Exclude]**: 
 - **[Thresholds]**: Filtering and assignment thresholds
 - **[Folder]**: Input/output folder paths
 - **[Options]**: Species, QC parameters, plotting options
 
 ## Data Organization
 
-- Place your raw single-cell files (`.h5ad`, `.rds`, `.csv`) in `data/raw/` (or the folder specified in config).
+- Place your raw .h5ad single-cell files `data/raw/` (or the folder specified in config).
 - Results will be written to `data/results/` (or as specified).
 
 ## Usage
@@ -89,8 +72,7 @@ snakemake \
 
 - Check log files in `data/results/logs/` for errors.
 - Ensure all dependencies are installed and input files are correctly formatted.
-- For `.rds` or `.csv` support, you may need to adapt or extend the scripts.
-
+- For `.rds` file, please open and use `scripts/convert_to_h5ad.R`
 ## License
 
 MIT License. See [LICENSE](LICENSE).

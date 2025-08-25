@@ -1,4 +1,3 @@
-import shutup; shutup.please()
 import numpy as np
 import scanpy as sc
 import pandas as pd
@@ -31,6 +30,7 @@ def prepare_adata(adata, species):
     genes = pd.Series(genes).str.upper()
     adata = sc.AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
     adata.var_names = genes
+    adata.var_names_make_unique()
     return adata
 
 def identify_special_genes(adata):
