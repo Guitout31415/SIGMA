@@ -1,5 +1,4 @@
 import streamlit as st
-import shutup; shutup.please()
 import scanpy as sc
 import pandas as pd
 import difflib
@@ -72,7 +71,10 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
         if not selected:
             st.error("No column selected for export.")
         else:
-            selected["is_target"] = "is_target"
+            selected["proba_target"] = "proba_target"
+            if "score" in obs.columns:
+                selected["score"] = "score"
+                selected["proba_exclu"] = "proba_exclu"
             new_obs = obs[[col for col in selected.values()]].copy()
             new_obs.columns = list(selected.keys())
             new_adata = adata.copy()

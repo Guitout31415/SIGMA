@@ -1,9 +1,6 @@
-
-# Imports
 import os
 import re
 import sys
-import shutup; shutup.please()
 
 sys.path.append("scripts")
 from read_config import read_config
@@ -28,7 +25,7 @@ MEM_MB = int(config.get("mem_mb", 16000))
 # Rules
 rule all:
     input:
-        CONFIG["Folder"]["output_folder"] + "/merged.h5ad",
+        CONFIG["Folder"]["output_folder"] + "/merge.h5ad",
         expand(os.path.join(CONFIG["Folder"]["output_folder"], "logs/{study}.log"), study=STUDIES_NAMES)
     threads: THREADS
 
@@ -36,7 +33,7 @@ rule merge_studies:
     input:
         CONFIG["Folder"]["output_folder"] + "/harmonized"
     output:
-        CONFIG["Folder"]["output_folder"] + "/merged.h5ad"
+        CONFIG["Folder"]["output_folder"] + "/merge.h5ad"
     threads: THREADS
     resources:
         mem_mb=MEM_MB
@@ -100,6 +97,7 @@ rule find_target:
             "--study_name {wildcards.study} "
             "--candidate_genes {params.candidate_genes} "
             "--marker_genes {params.marker_genes} "
+            "--exclude_genes {params.exclude_genes} "
             "--min_genes_detected {params.min_genes_detected} "
             "--gene_detection_threshold {params.gene_detection_threshold} "
             "--n_components_target {params.n_components_target} "
