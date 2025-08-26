@@ -97,7 +97,7 @@ def find_optimal_gmm_components(data: np.ndarray, max_components: int) -> tuple[
         tuple[GaussianMixture, int]: A tuple containing the best-fit GMM model and the optimal number of components.
     """
     bics, models = [], []
-    n_range = range(1, max_components + 1)
+    n_range = range(2, max_components + 1)
     
     for n in n_range:
         gmm = GaussianMixture(n_components=n, n_init=N_INIT_GMM, reg_covar=REG_COVAR_GMM)
