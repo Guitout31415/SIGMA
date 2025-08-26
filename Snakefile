@@ -84,6 +84,7 @@ rule find_target:
         gene_detection_threshold=float(CONFIG['Thresholds']['gene_detection_threshold']),
         n_components_target=CONFIG['Thresholds']['n_components_target'],
         n_components_exclu=CONFIG['Thresholds']['n_components_exclu'],
+        min_mean_expression=float(CONFIG['Thresholds']['min_mean_expression']),
         species=CONFIG['Options']['species'],
         plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots")
     log:
@@ -102,6 +103,7 @@ rule find_target:
             "--gene_detection_threshold {params.gene_detection_threshold} "
             "--n_components_target {params.n_components_target} "
             "--n_components_exclu {params.n_components_exclu} "
+            "--min_mean_expression {params.min_mean_expression} "
             "--species {params.species} "
             "--plot_folder {params.plot_folder} >> '{log.stdout}' 2>> '{log.stderr}'"
         )
@@ -154,7 +156,7 @@ rule convert_to_h5ad:
 
 rule merge_logs:
     input:
-        merged_file=CONFIG["Folder"]["output_folder"] + "/merged.h5ad",
+        merged_file=CONFIG["Folder"]["output_folder"] + "/merge.h5ad",
         i1=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout"),
         i2=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
     output:

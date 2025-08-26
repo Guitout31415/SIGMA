@@ -31,6 +31,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--gene_detection_threshold", type=float, required=True, help="Minimum expression value for a gene to be considered detected.")
     parser.add_argument("--n_components_target", type=str, default="auto", help="Number of GMM components for target genes, or 'auto'.")
     parser.add_argument("--n_components_exclu", type=str, default="auto", help="Number of GMM components for exclude genes, or 'auto'.")
+    parser.add_argument("--min_mean_expression", type=float, default=2.0, help="Minimum mean expression level for the higher component can be considered as target cluster.")
     parser.add_argument("--plot_folder", type=str, default=None, help="Directory to save plots. Plots will not be generated if None.")
     parser.add_argument("--species", type=str, default="hsapiens", help="Species name for Ensembl database.")
     return parser.parse_args()
@@ -279,6 +280,7 @@ def find_target_cells(
     gene_detection_threshold: float,
     n_components_target: str,
     n_components_exclu: str,
+    min_mean_expression: float,
     plot_folder: str,
     species: str
 ) -> sc.AnnData:
@@ -363,12 +365,20 @@ def find_target_cells(
     # Determine the target component as the one with the highest mean
     print("\n--- 4. Calculate probabilities for target genes ---")
     target_component = np.argmax(gmm_target.means_.flatten())
-    candidate_cells.obs["proba_target"] = probas_target[:, target_component]
+    if gmm_target.means_.flatten()[target_component] < min_mean_expression:
+        print(f"Target component mean ({gmm_target.means_.flatten()[target_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
+        candidate_cells.obs["proba_target"] = 0
+    else:
+        candidate_cells.obs["proba_target"] = probas_target[:, target_component]
 
     if exclude_genes_avail:
         print("--- 4bis. Calculate probabilities for exclude genes ---")
         exclude_component = np.argmax(gmm_exclude.means_.flatten())
-        candidate_cells.obs["proba_exclu"] = probas_exclude[:, exclude_component]
+        if gmm_exclude.means_.flatten()[exclude_component] < min_mean_expression:
+            print(f"Exclude component mean ({gmm_exclude.means_.flatten()[exclude_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
+            candidate_cells.obs["proba_exclu"] = 0
+        else:
+            candidate_cells.obs["proba_exclu"] = probas_exclude[:, exclude_component]
 
         print(f"\n--- 5. Calculate score and filter cells ---")
         score = candidate_cells.obs["proba_target"] - candidate_cells.obs["proba_exclu"]
@@ -415,6 +425,7 @@ def main():
         gene_detection_threshold=args.gene_detection_threshold,
         n_components_target=args.n_components_target,
         n_components_exclu=args.n_components_exclu,
+        min_mean_expression=args.min_mean_expression,
         plot_folder=args.plot_folder,
         species=args.species
     )
