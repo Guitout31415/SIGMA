@@ -68,4 +68,4 @@ snakemake \
 - For `.rds` file, please open and use `scripts/convert_to_h5ad.R`
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+GPL-3.0 License. See [LICENSE](LICENSE).
