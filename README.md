@@ -14,7 +14,7 @@ SIGMA is a bioinformatics pipeline for automated extraction of targeted cell typ
 Clone the repository:
 
 ```bash
-git clone https://github.com/Guitout31415/SIGMA.git
+git clone git@github.com:Guitout31415/SIGMA.git
 cd SIGMA
 conda env create -f environment.yml
 conda activate SIGMA
@@ -25,18 +25,13 @@ pip install snakemake
 
 Edit the `config_mk.conf` file to specify:
 
-- **[Metadata]**: Metadata fields to extract
+- **[Metadata]**: Metadata fields to extract/conserve
 - **[Candidate]**: Candidate genes for initial filtering
 - **[Markers]**: Marker genes for final assignment
-- **[Exclude]**: 
+- **[Exclude]**: Marker genes 
 - **[Thresholds]**: Filtering and assignment thresholds
 - **[Folder]**: Input/output folder paths
 - **[Options]**: Species, QC parameters, plotting options
-
-## Data Organization
-
-- Place your raw .h5ad single-cell files `data/raw/` (or the folder specified in config).
-- Results will be written to `data/results/` (or as specified).
 
 ## Usage
 
@@ -44,11 +39,9 @@ Run the pipeline with Snakemake:
 
 ```bash
 snakemake \
-  --config file=config_mk.conf threads=8 mem_mb=200000 \
+  --config file=config_mk.conf threads=1 mem_mb=200000 \
   --cores 50 \
-  --resources mem_mb=700000 \
-  --latency-wait 60 \
-  -p
+  --resources mem_mb=200000 \
 ```
 
 - Adjust `--cores` as needed.
@@ -64,7 +57,7 @@ snakemake \
 ## Output
 
 - Filtered and processed `.h5ad` files per study: `data/results/qc/`, `data/results/extracted/`, `data/results/harmonized/`
-- Merged dataset: `data/results/merged.h5ad`
+- Merged dataset: `data/results/merge.h5ad`
 - Logs: `data/results/logs/`
 - Plots (if enabled): as specified in config
 
