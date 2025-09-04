@@ -16,11 +16,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Quality control for scRNA-seq data")
     parser.add_argument("--h5ad_file", type=str, required=True, help="Path to the h5ad file")
     parser.add_argument("--output_file", type=str, required=True, help="Path to the output file")
-    parser.add_argument("--threads", type=int, default=1, help="Number of threads to use")
     parser.add_argument("--percent_top", type=lambda x: int(x) if isinstance(x, str) else x, default=20, help="Percent of top genes to consider")
     parser.add_argument("--nmads", type=lambda x: int(x) if isinstance(x, str) else x, default=5, help="Number of median absolute deviations to consider as outliers")
     parser.add_argument("--do_QC", type=str, default="True", help="Whether to perform quality control")
     parser.add_argument("--species", type=str, default="hsapiens", help="Species of the data")
+    parser.add_argument("--threads", type=int, default=1, help="Number of threads to use for parallel processing")
+    parser.add_argument("--force_parallel", default=False, action="store_true", help="Force parallel processing even for small datasets")
     return parser.parse_args()
 
 def prepare_adata(adata, species):
@@ -50,10 +51,14 @@ def calculate_outlier_vector(M, nmads):
     return (M < lower) | (M > upper)
 
 def run_scrublet(adata, n_jobs=1):
-    if adata.n_obs > 10_000:
-        print("Large dataset, running Scrublet in batches...")
-        batch_size = int(np.ceil(adata.n_obs / n_jobs))
+    # Only use parallel processing for very large datasets where the benefit outweighs overhead
+    if adata.n_obs > 50_000 and n_jobs > 1:
+        print(f"Large dataset ({adata.n_obs} cells), running Scrublet in {n_jobs} batches...")
+        # Use larger batch sizes to reduce overhead
+        min_batch_size = 10_000  # Minimum batch size for efficiency
+        batch_size = max(min_batch_size, int(np.ceil(adata.n_obs / n_jobs)))
         batches = [adata[i:i+batch_size] for i in range(0, adata.n_obs, batch_size)]
+        
         def process_batch(batch):
             scrub = scr.Scrublet(batch.X)
             scores, _ = scrub.scrub_doublets(verbose=False)
@@ -62,10 +67,14 @@ def run_scrublet(adata, n_jobs=1):
             except:
                 mask = scrub.call_doublets(threshold=0.25)
             return scores, mask
-        results = Parallel(n_jobs=n_jobs)(delayed(process_batch)(b) for b in batches)
+        
+        print(f"Processing {len(batches)} batches with batch size ~{batch_size}...")
+        results = Parallel(n_jobs=min(n_jobs, len(batches)))(delayed(process_batch)(b) for b in batches)
         scores = np.concatenate([r[0] for r in results])
         masks = np.concatenate([r[1] for r in results])
+        print("Batch processing completed")
     else:
+        print(f"Running Scrublet sequentially ({adata.n_obs} cells)")
         scrub = scr.Scrublet(adata.X)
         scores, _ = scrub.scrub_doublets(verbose=False)
         try:
@@ -74,6 +83,7 @@ def run_scrublet(adata, n_jobs=1):
         except:
             masks = scrub.call_doublets(threshold=0.25)
             print("Using manual doublet score threshold: 0.25")
+    
     adata.obs["doublet_score"] = scores
     adata.obs["doublet_class"] = pd.Categorical(masks.astype(str))
     adata = adata[adata.obs["doublet_class"] == "False"].copy()
@@ -92,11 +102,12 @@ if __name__ == "__main__":
         # Start timer
         start_time = time.time()
 
-        # Parallel thread control
-        os.environ["OMP_NUM_THREADS"] = str(args.threads)
-        os.environ["OPENBLAS_NUM_THREADS"] = str(args.threads)
-        os.environ["MKL_NUM_THREADS"] = str(args.threads)
-        os.environ["NUMEXPR_NUM_THREADS"] = str(args.threads)
+        # Optimize thread usage: use threads for numerical libraries, 
+        # but control joblib parallelism separately
+        os.environ["OMP_NUM_THREADS"] = str(min(args.threads, 4))  # Limit to avoid oversubscription
+        os.environ["OPENBLAS_NUM_THREADS"] = str(min(args.threads, 4))
+        os.environ["MKL_NUM_THREADS"] = str(min(args.threads, 4))
+        os.environ["NUMEXPR_NUM_THREADS"] = str(min(args.threads, 4))
 
         adata = sc.read_h5ad(args.h5ad_file)
         print("===============================")
@@ -122,9 +133,10 @@ if __name__ == "__main__":
             f"pct_counts_in_top_{args.percent_top}_genes"
         ]
 
-        outlier_results = Parallel(n_jobs=args.threads)(
-            delayed(calculate_outlier_vector)(adata.obs[m], args.nmads) for m in metrics
-        )
+        # Calculate outliers sequentially (more efficient for small number of metrics)
+        outlier_results = []
+        for metric in metrics:
+            outlier_results.append(calculate_outlier_vector(adata.obs[metric], args.nmads))
 
         adata.obs["outlier"] = np.any(outlier_results, axis=0)
         adata.obs["mt_outlier"] = calculate_outlier_vector(
@@ -135,7 +147,11 @@ if __name__ == "__main__":
         print(f" - Number of cells after filtering low quality cells: {adata.n_obs}")
 
         print("Detecting doublets...")
-        adata = run_scrublet(adata, n_jobs=args.threads)
+        # Use parallel processing only if beneficial
+        use_parallel = args.force_parallel or (adata.n_obs > 50_000 and args.threads > 1)
+        if use_parallel:
+            print(f"Using {args.threads} threads for doublet detection...")
+        adata = run_scrublet(adata, n_jobs=args.threads if use_parallel else 1)
 
 
         print(f"Final number of cells: {adata.n_obs}")
