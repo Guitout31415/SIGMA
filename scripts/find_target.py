@@ -1,12 +1,14 @@
 import scanpy as sc
 import pandas as pd
 import os
+from scipy.signal import argrelextrema
+import json
 from sklearn.mixture import GaussianMixture
 import numpy as np
-from kneed import KneeLocator
 import matplotlib.pyplot as plt
 import argparse
 import time
+from scipy.stats import gaussian_kde
 from pybiomart import Dataset
 
 # --- Constants ---
@@ -24,9 +26,8 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--h5ad_file", type=str, required=True, help="Path to the input AnnData (.h5ad) file.")
     parser.add_argument("--output_file", type=str, required=True, help="Path to the output file for the filtered AnnData object.")
     parser.add_argument("--study_name", type=str, required=True, help="A name for the study, used for output filenames.")
-    parser.add_argument("--candidate_genes", nargs='+', type=str, required=True, help="List of candidate genes to filter cells.")
-    parser.add_argument("--marker_genes", nargs='+', type=str, required=True, help="List of genes to be used for GMM clustering.")
-    parser.add_argument("--exclude_genes", nargs='*', type=str, default=[], help="Optional list of genes to exclude from the target cell population.")
+    parser.add_argument("--target_genes", nargs='+', type=str, required=True, help="List of genes to be used for GMM clustering.")
+    parser.add_argument("--exclude_genes", help="Optional JSON dictionary of genes to exclude from the target cell population. Ensure keys and values are enclosed in double quotes.")
     parser.add_argument("--min_genes_detected", type=float, required=True, help="Minimum number of candidate genes required to be detected in a cell.")
     parser.add_argument("--gene_detection_threshold", type=float, required=True, help="Minimum expression value for a gene to be considered detected.")
     parser.add_argument("--n_components_target", type=str, default="auto", help="Number of GMM components for target genes, or 'auto'.")
@@ -84,33 +85,66 @@ def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
     
     return {str(alias).upper() for alias in all_aliases if pd.notnull(alias)}
 
-def find_optimal_gmm_components(data: np.ndarray, max_components: int) -> tuple[GaussianMixture, int]:
+def find_optimal_gmm_components(data: np.ndarray) -> int:
     """
-    Determines the optimal number of components for a Gaussian Mixture Model (GMM)
-    using the Bayesian Information Criterion (BIC) and the KneeLocator algorithm.
-    
+    Estimate the optimal number of Gaussian components in a univariate dataset 
+    using kernel density estimation and spline-based peak detection.
+
+    Steps:
+        1. Estimate the probability density function using a Gaussian kernel (KDE).
+        2. Fit local cubic polynomials (splines) to the KDE curve for smoothing.
+        3. Compute first and second derivatives of these polynomials.
+        4. Detect local maxima in the smoothed density curve.
+        5. Filter maxima based on the second derivative to retain only significant peaks.
+        6. Return the number of significant peaks as the optimal number of components.
+
     Args:
-        data (np.ndarray): The input data for GMM fitting.
-        max_components (int): The maximum number of components to test.
+        data (np.ndarray): 1D input data array for GMM fitting.
         
     Returns:
-        tuple[GaussianMixture, int]: A tuple containing the best-fit GMM model and the optimal number of components.
+        int: The optimal number of components found.
     """
-    bics, models = [], []
-    n_range = range(2, max_components + 1)
-    
-    for n in n_range:
-        gmm = GaussianMixture(n_components=n, n_init=N_INIT_GMM, reg_covar=REG_COVAR_GMM)
-        gmm.fit(data)
-        bics.append(gmm.bic(data))
-        models.append(gmm)
-        
-    knee_locator = KneeLocator(n_range, bics, curve='convex', direction='decreasing')
-    optimal_n = knee_locator.knee if knee_locator.knee else max_components
-    
-    return models[optimal_n - 1], optimal_n
+    kde = gaussian_kde(data.flatten())
+    x_grid = np.linspace(data.min(), data.max(), 1000)
 
-def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str) -> tuple[GaussianMixture, np.ndarray, int]:
+    # Step 1: Fit a smoothing spline to the kernel density estimate
+    f = dict()
+    for a,b in zip(x_grid[:-1], x_grid[1:]):
+        # fit polynomial
+        x = np.linspace(a, b, 100)
+        y = kde(x)
+        coeff = np.polyfit(x, y, 3)
+        f[float(a)] = np.poly1d(coeff)
+
+    y_f = []
+    for i in range(len(x_grid)-1):
+        xi = list(f.keys())[i]
+        fi = f[xi]
+        y_f.append(fi(xi))
+
+    # Step 2: For each region of the smoothing spline, set the gradient of corresponding polynomial
+    df = dict([(xi, fi.deriv()) for xi, fi in f.items()])
+
+    # Step 3: Find local maxima
+    idx_max = argrelextrema(np.array(y_f), np.greater)[0]
+    maxima = x_grid[idx_max]
+
+    # Step 4: For each local maximum, compute the eigenvalues of the Hessian matrix
+    dff = dict([(xi, dfi.deriv()) for xi, dfi in df.items()])
+    p = len(maxima)
+    spec = []
+    for q in range(p):
+        m = maxima[q]
+        kq = 0
+        while not x_grid[kq] <= m <= x_grid[kq+1]:
+            kq += 1
+        spec.append(list(dff.values())[kq](m))
+
+    spec = np.array(spec)
+    true_maxima = maxima[np.abs(spec) > 0.001]
+    return len(true_maxima)
+
+def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: str) -> tuple[GaussianMixture, np.ndarray, int]:
     """
     Fits a Gaussian Mixture Model (GMM) to the data and predicts probabilities.
     
@@ -122,16 +156,13 @@ def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str) -> tuple[Gau
         tuple[GaussianMixture, np.ndarray, int]: The fitted GMM, the predicted probabilities, and the optimal number of components used.
     """
     if n_components == "auto":
-        print("Automatically determining the number of components using BIC...")
-        max_components = min(MAX_COMPONENTS, data.shape[0])
-        gmm, optimal_n = find_optimal_gmm_components(data, max_components)
-        print(f"Optimal number of components: {optimal_n}")
+        print(f"Automatically determining the number of components using BIC for {category}...")
+        optimal_n = find_optimal_gmm_components(data)
+        print(f"\tOptimal number of components: {optimal_n}")
     else:
-        num_components = int(n_components)
-        print(f"Using specified number of components: {num_components}")
-        gmm = GaussianMixture(n_components=num_components, n_init=N_INIT_GMM, reg_covar=REG_COVAR_GMM).fit(data)
-        optimal_n = num_components
-    
+        optimal_n = int(n_components)
+        print(f"Using specified number of components for {category}: {optimal_n}")
+    gmm = GaussianMixture(n_components=optimal_n, n_init=N_INIT_GMM, reg_covar=REG_COVAR_GMM).fit(data)
     probas = gmm.predict_proba(data)
     return gmm, probas, optimal_n
 
@@ -168,7 +199,7 @@ def find_candidate_cells(adata: sc.AnnData, genes: set[str], min_genes: float, t
     
     return filtered_adata[is_expressed]
 
-def save_plots(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_folder: str, data: np.ndarray):
+def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_folder: str):
     """
     Generates and saves UMAP and histogram plots for the analysis.
     
@@ -180,34 +211,33 @@ def save_plots(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_fo
         data (np.ndarray): The data used to fit the GMM.
     """
     os.makedirs(plot_folder, exist_ok=True)
-    plot_path = os.path.join(plot_folder, f"{study_name}_extracted.png")
-    
+    plot_path = os.path.join(plot_folder, f"{study_name}_target.png")
+
     print("Generating and saving UMAP and histogram plots...")
-    
     fig, axes = plt.subplots(2, 2, figsize=(20, 10))
     
     # Plot UMAP colored by mean expression of candidate genes
     sc.pl.umap(
         adata,
-        color="marker_mean_expr",
+        color="target_mean_expr",
         cmap="viridis",
         size=50,
         ax=axes[0, 0],
         show=False,
-        title=f"UMAP colored by mean expression of marker genes in {study_name}"
+        title=f"UMAP colored by target mean expression"
     )
     axes[0, 0].set_facecolor('lightgrey')
     
     # Plot histogram of mean expression of candidate genes with GMM components
-    axes[0, 1].hist(data, bins=100, alpha=0.6, density=True)
+    axes[0, 1].hist(adata.obs["target_mean_expr"], bins=100, alpha=0.6, density=True)
     axes[0, 1].set(
-        title="Distribution of mean expression and GMM fit",
+        title="Distribution of target mean expression and GMM fit",
         xlabel="Mean expression per cell",
         ylabel="Density"
     )
     axes[0, 1].grid(True)
-    
-    x = np.linspace(data.min(), data.max(), 1000).reshape(-1, 1)
+
+    x = np.linspace(adata.obs["target_mean_expr"].min(), adata.obs["target_mean_expr"].max(), 1000).reshape(-1, 1)
     pdf = np.exp(gmm.score_samples(x))
     pdf_individual = gmm.predict_proba(x) * pdf[:, None]
     
@@ -236,36 +266,34 @@ def save_plots(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_fo
     
     fig.tight_layout()
     fig.savefig(plot_path, dpi=300, bbox_inches="tight")
-    print(f"Plots saved to: {plot_path}")
+    print(f"Targets plots saved to: {plot_path}")
 
-def plot_exclude(adata: sc.AnnData, study_name: str, plot_folder: str):
-    plot_path = os.path.join(plot_folder, f"{study_name}_exclude_plot.png")
+def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_names: list[str]):
+    plot_path = os.path.join(plot_folder, f"{study_name}_exclude.png")
+    fig, axes = plt.subplots(len(exclude_names), 2, figsize=(20, 5*len(exclude_names)))
 
-    fig, axes = plt.subplots(2, 2, figsize=(20, 10))
+    nrow = 0
+    for exclude in exclude_names:
+        sc.pl.umap(adata, color=f"{exclude}_mean_expr", cmap="viridis", ax=axes[nrow, 0], size=50, show=False)
+        axes[nrow, 0].set_facecolor('lightgrey')
+        
+        axes[nrow, 1].hist(adata.obs["target_mean_expr"], bins=100, alpha=0.6, density=True)
+        axes[nrow, 1].set(
+            title=f"Distribution of {exclude} mean expression and GMM fit",
+            xlabel="Mean expression per cell",
+            ylabel="Density"
+        )
+        axes[nrow, 1].grid(True)
+        nrow += 1
 
-    sc.pl.umap(adata, color="marker_mean_expr", cmap="viridis", ax=axes[0, 0], size=50, show=False)
-    sc.pl.umap(adata, color="exclude_mean_expr", cmap="viridis", ax=axes[0, 1], size=50, show=False)
-    axes[0, 0].set_facecolor('lightgrey')
-    axes[0, 1].set_facecolor('lightgrey')
-
-    x = adata.obs["proba_exclu"]
-    y = adata.obs["proba_target"]
-    score = adata.obs["score"]
-    axes[1, 0].scatter(x, y, c=score, cmap='coolwarm', s=5)
-    axes[1, 0].set_xlabel("Alternative Probability")
-    axes[1, 0].set_ylabel("Target Probability")
-    axes[1, 0].set_xlim(-0.1, 1.1)
-    axes[1, 0].set_ylim(-0.1, 1.1)
-    axes[1, 0].set_box_aspect(1)
-
-
-    cbar = plt.colorbar(axes[1, 0].collections[0], ax=axes[1, 0], fraction=0.03, pad=0.04)
-    cbar.set_label("Score")
-
+    # Plot UMAP colored by score
+    sc.pl.umap(adata, color="score", cmap="viridis", ax=axes[nrow, 0], size=50, show=False)
+    axes[nrow, 0].set_facecolor('lightgrey')
+    axes[nrow, 0].set(title="UMAP colored by score")
     # Plot histogram of score
-    axes[1, 1].hist(adata.obs["score"], bins=100, color='blue', alpha=0.7)
-    axes[1, 1].set(title="Histogram of Score", xlabel="Score", ylabel="Number of Cells")
-    axes[1, 1].grid(True)
+    axes[nrow, 1].hist(adata.obs["score"], bins=100, color='blue', alpha=0.7)
+    axes[nrow, 1].set(title="Histogram of Score", xlabel="Score", ylabel="Number of Cells")
+    axes[nrow, 1].grid(True)
 
     fig.tight_layout()
     fig.savefig(plot_path, dpi=300, bbox_inches="tight")
@@ -273,8 +301,7 @@ def plot_exclude(adata: sc.AnnData, study_name: str, plot_folder: str):
 def find_target_cells(
     adata: sc.AnnData,
     study_name: str,
-    candidate_genes: list[str],
-    marker_genes: list[str],
+    target_genes: list[str],
     exclude_genes: list[str],
     min_genes_detected: float,
     gene_detection_threshold: float,
@@ -299,9 +326,9 @@ def find_target_cells(
     Args:
         adata (sc.AnnData): The initial AnnData object.
         study_name (str): The name of the study.
-        candidate_genes (list[str]): Genes used to initially filter cells.
-        marker_genes (list[str]): Genes used for the primary GMM clustering.
-        exclude_genes (list[str]): Genes used for a secondary GMM to filter out unwanted cells.
+        target_genes (list[str]): Genes used to initially filter cells.
+        target_genes (list[str]): Genes used for the primary GMM clustering.
+        exclude_genes (dict): Genes used for a secondary GMM to filter out unwanted cells.
         min_genes_detected (float): Min number of candidate genes to be expressed per cell.
         gene_detection_threshold (float): Expression threshold for a gene to be considered detected.
         n_components_target (str): Number of GMM components for the 'marker' genes.
@@ -313,23 +340,27 @@ def find_target_cells(
         sc.AnnData: The AnnData object with added 'proba_target' and 'proba_exclu' columns.
     """
     print("\n--- 1. Finding Gene Aliases ---")
-    candidate_aliases = get_gene_aliases(candidate_genes, species=species)
-    marker_aliases = get_gene_aliases(marker_genes, species=species)
-    exclude_aliases = get_gene_aliases(exclude_genes, species=species)
+    candidate_aliases = get_gene_aliases(target_genes, species=species)
+    marker_aliases = get_gene_aliases(target_genes, species=species)
     
-    candidate_genes_avail = candidate_aliases.intersection(adata.var_names)
-    marker_genes_avail = marker_aliases.intersection(adata.var_names)
-    exclude_genes_avail = exclude_aliases.intersection(adata.var_names)
-    
-    print(f"Available candidate genes: {candidate_genes_avail}")
-    print(f"Available marker genes: {marker_genes_avail}")
+    target_genes_avail = candidate_aliases.intersection(adata.var_names)
+    target_genes_avail = marker_aliases.intersection(adata.var_names)
+
+    if exclude_genes != dict():
+        exclude_genes_avail = dict()
+        for category, genes in exclude_genes.items():
+            exclude_aliases = get_gene_aliases(genes, species=species)
+            exclude_genes_avail[category] = exclude_aliases.intersection(adata.var_names)
+
+    print(f"Available candidate genes: {target_genes_avail}")
+    print(f"Available target genes: {target_genes_avail}")
     print(f"Available exclude genes: {exclude_genes_avail}")
 
     print(f"\n--- 2. Find candidate cells and log1p-cpm normalize ---")
     print(f"Keeping cells that express at least {int(min_genes_detected)} candidate genes, each above a detection threshold of {int(gene_detection_threshold)}.")
     
     # Filter cells based on candidate gene expression
-    candidate_cells = find_candidate_cells(adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold)
+    candidate_cells = find_candidate_cells(adata, target_genes_avail, min_genes_detected, gene_detection_threshold)
 
     if candidate_cells.shape[0] == 0:
         print("No candidate cells found. Returning an empty AnnData object.")
@@ -342,25 +373,24 @@ def find_target_cells(
     candidate_cells = preprocess_adata(candidate_cells)
     
     # Compute mean expression of markered genes
-    marker_df = candidate_cells[:, list(marker_genes_avail)].to_df()
-    candidate_cells.obs['marker_mean_expr'] = marker_df.mean(axis=1)
+    marker_df = candidate_cells[:, list(target_genes_avail)].to_df()
+    candidate_cells.obs['target_mean_expr'] = marker_df.mean(axis=1)
     
-    print("\n--- 3. Fitting GMM for Target Genes ---")
-    # Set the number of threads for OPENBLAS to avoid potential conflicts with parallel processing
+    print("\n--- 3. Fitting GMM for Target genes ---")
     os.environ['OPENBLAS_NUM_THREADS'] = ENFORCED_THREAD_COUNT
-    data_target = np.array(candidate_cells.obs['marker_mean_expr']).reshape(-1, 1)
+    data_target = np.array(candidate_cells.obs['target_mean_expr']).reshape(-1, 1)
     
-    gmm_target, probas_target, _ = fit_gmm_and_predict_probas(data_target, n_components_target)
+    gmm_target, probas_target, _ = fit_gmm_and_predict_probas(data_target, n_components_target, category="Target")
     
     if exclude_genes_avail:
-        print("\n--- 3bis. Fitting GMM for Exclude Genes ---")
-        
-        exclude_df = candidate_cells[:, list(exclude_genes_avail)].to_df()
-        candidate_cells.obs['exclude_mean_expr'] = exclude_df.mean(axis=1)
-        
-        data_exclude = np.array(candidate_cells.obs['exclude_mean_expr']).reshape(-1, 1)
-        
-        gmm_exclude, probas_exclude, _ = fit_gmm_and_predict_probas(data_exclude, n_components_exclu)
+        print("\n--- 3bis. Fitting GMM for Exclude genes ---")
+        gmm_exclude = dict()
+        probas_exclude = dict()
+        for category, genes in exclude_genes_avail.items():
+            exclude_df = candidate_cells[:, list(genes)].to_df()
+            candidate_cells.obs[f'{category}_mean_expr'] = exclude_df.mean(axis=1)
+            data_exclude = np.array(candidate_cells.obs[f'{category}_mean_expr']).reshape(-1, 1)
+            gmm_exclude[category], probas_exclude[category], _ = fit_gmm_and_predict_probas(data_exclude, n_components_exclu, category=category)
 
     # Determine the target component as the one with the highest mean
     print("\n--- 4. Calculate probabilities for target genes ---")
@@ -373,34 +403,33 @@ def find_target_cells(
 
     if exclude_genes_avail:
         print("--- 4bis. Calculate probabilities for exclude genes ---")
-        exclude_component = np.argmax(gmm_exclude.means_.flatten())
-        if gmm_exclude.means_.flatten()[exclude_component] < min_mean_expression:
-            print(f"Exclude component mean ({gmm_exclude.means_.flatten()[exclude_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
-            candidate_cells.obs["proba_exclu"] = 0
-        else:
-            candidate_cells.obs["proba_exclu"] = probas_exclude[:, exclude_component]
+        score = candidate_cells.obs["proba_target"]
+        for category, gmm, proba in zip(gmm_exclude.keys(), gmm_exclude.values(), probas_exclude.values()):
+            exclude_component = np.argmax(gmm.means_.flatten())
+            if gmm.means_.flatten()[exclude_component] < min_mean_expression:
+                print(f"{category} component mean ({gmm.means_.flatten()[exclude_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
+                candidate_cells.obs[f"proba_{category}"] = 0
+            else:
+                candidate_cells.obs[f"proba_{category}"] = proba[:, exclude_component]
+            score -= candidate_cells.obs[f"proba_{category}"]
 
-        print(f"\n--- 5. Calculate score and filter cells ---")
-        score = candidate_cells.obs["proba_target"] - candidate_cells.obs["proba_exclu"]
-        candidate_cells.obs["score"] = score[candidate_cells.obs_names]
-        # candidate_cells = candidate_cells[candidate_cells.obs["score"] > score_threshold]
+        print(f"\n--- 5. Calculate score ---")
+        candidate_cells.obs["score"] = score
 
     # Plot results if a folder is specified
     if plot_folder:
-        save_plots(candidate_cells, gmm_target, study_name, plot_folder, data_target)
+        plots_target(candidate_cells, gmm_target, study_name, plot_folder)
         if exclude_genes_avail:
-            plot_exclude(candidate_cells, study_name, plot_folder)
+            plots_exclude(candidate_cells, study_name, plot_folder, exclude_names=list(exclude_genes.keys()))
 
     return candidate_cells
 
 def main():
-    """
-    Main function to orchestrate the entire cell extraction process.
-    """
     start_time = time.time()
     
     args = parse_arguments()
-    
+    args.exclude_genes = json.loads(args.exclude_genes) if args.exclude_genes != "" else dict()
+
     try:
         adata = sc.read_h5ad(args.h5ad_file)
     except FileNotFoundError:
@@ -418,8 +447,7 @@ def main():
     adata_target = find_target_cells(
         adata=adata,
         study_name=args.study_name,
-        candidate_genes=args.candidate_genes,
-        marker_genes=args.marker_genes,
+        target_genes=args.target_genes,
         exclude_genes=args.exclude_genes,
         min_genes_detected=args.min_genes_detected,
         gene_detection_threshold=args.gene_detection_threshold,
