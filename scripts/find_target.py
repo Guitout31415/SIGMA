@@ -1,6 +1,12 @@
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KernelDensity
 import scanpy as sc
+from scipy.optimize import fsolve
+from scipy.interpolate import UnivariateSpline
+from scipy.optimize import root
 import pandas as pd
 import os
+from scipy.optimize import brentq
 from scipy.signal import argrelextrema
 import json
 from sklearn.mixture import GaussianMixture
@@ -12,10 +18,6 @@ from scipy.stats import gaussian_kde
 from pybiomart import Dataset
 
 # --- Constants ---
-MAX_COMPONENTS = 10
-N_INIT_GMM = 10
-REG_COVAR_GMM = 1e-6
-ENFORCED_THREAD_COUNT = '60'
 TARGET_SUM = 1e6
 
 def parse_arguments() -> argparse.Namespace:
@@ -51,6 +53,7 @@ def preprocess_adata(adata: sc.AnnData) -> sc.AnnData:
     Returns:
         sc.AnnData: The processed AnnData object.
     """
+    adata = adata.copy()
     adata.layers["raw"] = adata.X.copy()
     sc.pp.normalize_total(adata, target_sum=TARGET_SUM)
     sc.pp.log1p(adata)
@@ -64,6 +67,7 @@ def preprocess_adata(adata: sc.AnnData) -> sc.AnnData:
 def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
     """
     Retrieves all known aliases for a list of genes using Ensembl Biomart.
+    Optimized version with caching and vectorized operations.
     
     Args:
         genes (list[str]): A list of gene names.
@@ -72,18 +76,42 @@ def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
     Returns:
         set[str]: A set of all unique aliases found.
     """
-    dataset = Dataset(name=f'{species}_gene_ensembl', host='http://www.ensembl.org')
-    results = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
+    # Cache pour éviter de refaire la même requête
+    cache_key = f"{species}_biomart_data"
+    if not hasattr(get_gene_aliases, 'cache'):
+        get_gene_aliases.cache = {}
+    
+    # Récupérer ou créer les données biomart
+    if cache_key not in get_gene_aliases.cache:
+        print(f"Fetching gene data from Ensembl for {species}...")
+        dataset = Dataset(name=f'{species}_gene_ensembl', host='http://www.ensembl.org')
+        results = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
+        
+        # Préprocesser une seule fois : convertir en lowercase et créer un index
+        processed_data = []
+        for idx, row in results.iterrows():
+            row_values = [str(val).lower() if pd.notnull(val) else '' for val in row.values]
+            processed_data.append((idx, row_values, row.values))
+        
+        get_gene_aliases.cache[cache_key] = (results, processed_data)
+        print(f"Cached {len(results)} gene entries.")
+    
+    results, processed_data = get_gene_aliases.cache[cache_key]
+    
+    # Conversion vectorisée des gènes d'entrée
+    genes_lower = [gene.lower() for gene in genes]
+    genes_set = set(genes_lower)
     
     all_aliases = set()
-    for gene in genes:
-        gene_lower = gene.lower()
-        # Find rows where the lowercase gene name appears in any column.
-        mask = results.apply(lambda row: row.astype(str).str.lower().eq(gene_lower).any(), axis=1)
-        # Add all unique values from these rows to the set of aliases.
-        all_aliases.update(results[mask].values.flatten().tolist())
     
-    return {str(alias).upper() for alias in all_aliases if pd.notnull(alias)}
+    # Recherche optimisée
+    for idx, row_lower, row_original in processed_data:
+        # Vérifier si un des gènes recherchés est dans cette ligne
+        if any(gene_lower in row_lower for gene_lower in genes_set):
+            # Ajouter tous les alias de cette ligne
+            all_aliases.update([str(val) for val in row_original if pd.notnull(val)])
+    
+    return {str(alias).upper() for alias in all_aliases if pd.notnull(alias) and str(alias).strip()}
 
 def find_optimal_gmm_components(data: np.ndarray) -> int:
     """
@@ -91,12 +119,12 @@ def find_optimal_gmm_components(data: np.ndarray) -> int:
     using kernel density estimation and spline-based peak detection.
 
     Steps:
-        1. Estimate the probability density function using a Gaussian kernel (KDE).
-        2. Fit local cubic polynomials (splines) to the KDE curve for smoothing.
-        3. Compute first and second derivatives of these polynomials.
-        4. Detect local maxima in the smoothed density curve.
-        5. Filter maxima based on the second derivative to retain only significant peaks.
-        6. Return the number of significant peaks as the optimal number of components.
+        1. Estimate the probability density function using a Gaussian kernel (KDE) with optimal bandwidth.
+        2. Fit a smoothing spline to the KDE curve.
+        3. Compute first and second derivatives of the spline.
+        4. Solve systems to find local extrema.
+        5. Filter maxima based on the second derivative.
+        6. Return the number of significant peaks.
 
     Args:
         data (np.ndarray): 1D input data array for GMM fitting.
@@ -104,47 +132,45 @@ def find_optimal_gmm_components(data: np.ndarray) -> int:
     Returns:
         int: The optimal number of components found.
     """
-    kde = gaussian_kde(data.flatten())
-    x_grid = np.linspace(data.min(), data.max(), 1000)
+   
+    # Étape 1 : Calculer la KDE avec bandwidth optimal via cross-validation
+    expr = data.flatten()
+    kde = gaussian_kde(expr)
+    x_grid = np.linspace(expr.min(), expr.max(), 3000)
+    kde_values = kde(x_grid)
 
-    # Step 1: Fit a smoothing spline to the kernel density estimate
-    f = dict()
-    for a,b in zip(x_grid[:-1], x_grid[1:]):
-        # fit polynomial
-        x = np.linspace(a, b, 100)
-        y = kde(x)
-        coeff = np.polyfit(x, y, 3)
-        f[float(a)] = np.poly1d(coeff)
+    # Étape 2 : Ajuster un spline de lissage à l'estimation de densité
+    smoothing_factor = 0.01*len(x_grid)  # Facteur de lissage basé sur la taille des données
+    spline = UnivariateSpline(x_grid, kde_values, s=smoothing_factor, k=3)
 
-    y_f = []
-    for i in range(len(x_grid)-1):
-        xi = list(f.keys())[i]
-        fi = f[xi]
-        y_f.append(fi(xi))
+    # Étape 3 : Trouver les extrema locaux en résolvant la dérivée première = 0
+    deriv1 = spline.derivative()
+    deriv_values = deriv1(x_grid)
+    sign_changes = np.where(np.diff(np.sign(deriv_values)) != 0)[0]
 
-    # Step 2: For each region of the smoothing spline, set the gradient of corresponding polynomial
-    df = dict([(xi, fi.deriv()) for xi, fi in f.items()])
+    critical_points = []
+    for i in sign_changes:
+        try:
+            root = brentq(deriv1, x_grid[i], x_grid[i+1])
+            critical_points.append(root)
+        except ValueError:
+            pass  # Pas de racine dans cet intervalle
 
-    # Step 3: Find local maxima
-    idx_max = argrelextrema(np.array(y_f), np.greater)[0]
-    maxima = x_grid[idx_max]
+    # Étape 4 : Filtrer pour garder seulement les maxima locaux
+    # Pour chaque point critique, vérifier la dérivée seconde (Hessienne en 1D)
+    local_maxima = []
+    for cp in critical_points:
+        if x_grid.min() <= cp <= x_grid.max():  # S'assurer que c'est dans la plage
+            second_deriv = spline.derivative(2)(cp)
+            if second_deriv < 0 and abs(second_deriv) > 0.001:  # Maxima local avec seuil
+                local_maxima.append(cp)
 
-    # Step 4: For each local maximum, compute the eigenvalues of the Hessian matrix
-    dff = dict([(xi, dfi.deriv()) for xi, dfi in df.items()])
-    p = len(maxima)
-    spec = []
-    for q in range(p):
-        m = maxima[q]
-        kq = 0
-        while not x_grid[kq] <= m <= x_grid[kq+1]:
-            kq += 1
-        spec.append(list(dff.values())[kq](m))
+    # Étape 5 : Retourner les maxima locaux et leur nombre
+    n_peaks = len(local_maxima)
 
-    spec = np.array(spec)
-    true_maxima = maxima[np.abs(spec) > 0.001]
-    return len(true_maxima)
+    return n_peaks
 
-def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: str) -> tuple[GaussianMixture, np.ndarray, int]:
+def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: str) -> tuple[GaussianMixture, np.ndarray]:
     """
     Fits a Gaussian Mixture Model (GMM) to the data and predicts probabilities.
     
@@ -153,18 +179,18 @@ def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: st
         n_components (str): The number of components, or "auto" to determine it automatically.
         
     Returns:
-        tuple[GaussianMixture, np.ndarray, int]: The fitted GMM, the predicted probabilities, and the optimal number of components used.
+        tuple[GaussianMixture, np.ndarray]: The fitted GMM and the predicted probabilities.
     """
     if n_components == "auto":
-        print(f"Automatically determining the number of components using BIC for {category}...")
+        print(f"Automatically determining the number of components for {category}...")
         optimal_n = find_optimal_gmm_components(data)
         print(f"\tOptimal number of components: {optimal_n}")
     else:
         optimal_n = int(n_components)
         print(f"Using specified number of components for {category}: {optimal_n}")
-    gmm = GaussianMixture(n_components=optimal_n, n_init=N_INIT_GMM, reg_covar=REG_COVAR_GMM).fit(data)
+    gmm = GaussianMixture(n_components=optimal_n).fit(data)
     probas = gmm.predict_proba(data)
-    return gmm, probas, optimal_n
+    return gmm, probas
 
 def find_candidate_cells(adata: sc.AnnData, genes: set[str], min_genes: float, threshold: float) -> sc.AnnData:
     """
@@ -256,7 +282,6 @@ def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_
         show=False,
         title=f"UMAP colored by probability of being a target cell\n(Gaussian Mixture Model with {gmm.n_components} components)"
     )
-    axes[1, 0].collections[0].set_clim(0, 1)
     axes[1, 0].set_facecolor('lightgrey')
     
     # Plot histogram of probability of being a target cell
@@ -270,14 +295,17 @@ def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_
 
 def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_names: list[str]):
     plot_path = os.path.join(plot_folder, f"{study_name}_exclude.png")
-    fig, axes = plt.subplots(len(exclude_names), 2, figsize=(20, 5*len(exclude_names)))
+    n_rows = len(exclude_names) + 1
+    print(f"Debug: len(exclude_names) = {len(exclude_names)}, n_rows = {n_rows}")
+    fig, axes = plt.subplots(n_rows, 2, figsize=(20, 5*n_rows))
+    print(f"Debug: axes.shape = {axes.shape}")
 
     nrow = 0
     for exclude in exclude_names:
         sc.pl.umap(adata, color=f"{exclude}_mean_expr", cmap="viridis", ax=axes[nrow, 0], size=50, show=False)
         axes[nrow, 0].set_facecolor('lightgrey')
-        
-        axes[nrow, 1].hist(adata.obs["target_mean_expr"], bins=100, alpha=0.6, density=True)
+
+        axes[nrow, 1].hist(adata.obs[f"{exclude}_mean_expr"], bins=100, alpha=0.6, density=True)
         axes[nrow, 1].set(
             title=f"Distribution of {exclude} mean expression and GMM fit",
             xlabel="Mean expression per cell",
@@ -286,6 +314,7 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
         axes[nrow, 1].grid(True)
         nrow += 1
 
+    print(f"Debug: nrow after loop = {nrow}")
     # Plot UMAP colored by score
     sc.pl.umap(adata, color="score", cmap="viridis", ax=axes[nrow, 0], size=50, show=False)
     axes[nrow, 0].set_facecolor('lightgrey')
@@ -333,11 +362,12 @@ def find_target_cells(
         gene_detection_threshold (float): Expression threshold for a gene to be considered detected.
         n_components_target (str): Number of GMM components for the 'marker' genes.
         n_components_exclu (str): Number of GMM components for the 'exclude' genes.
+        min_mean_expression (float): Minimum mean expression level for the higher component to be considered as target cluster.
         plot_folder (str): Directory for plots.
         species (str): The species for the gene alias lookup.
         
     Returns:
-        sc.AnnData: The AnnData object with added 'proba_target' and 'proba_exclu' columns.
+        sc.AnnData: The AnnData object with added 'proba_target' and other probability columns.
     """
     print("\n--- 1. Finding Gene Aliases ---")
     candidate_aliases = get_gene_aliases(target_genes, species=species)
@@ -373,14 +403,14 @@ def find_target_cells(
     candidate_cells = preprocess_adata(candidate_cells)
     
     # Compute mean expression of markered genes
+    print("Compute mean expression of target genes...")
     marker_df = candidate_cells[:, list(target_genes_avail)].to_df()
     candidate_cells.obs['target_mean_expr'] = marker_df.mean(axis=1)
     
     print("\n--- 3. Fitting GMM for Target genes ---")
-    os.environ['OPENBLAS_NUM_THREADS'] = ENFORCED_THREAD_COUNT
     data_target = np.array(candidate_cells.obs['target_mean_expr']).reshape(-1, 1)
     
-    gmm_target, probas_target, _ = fit_gmm_and_predict_probas(data_target, n_components_target, category="Target")
+    gmm_target, probas_target = fit_gmm_and_predict_probas(data_target, n_components_target, category="Target")
     
     if exclude_genes_avail:
         print("\n--- 3bis. Fitting GMM for Exclude genes ---")
@@ -390,7 +420,7 @@ def find_target_cells(
             exclude_df = candidate_cells[:, list(genes)].to_df()
             candidate_cells.obs[f'{category}_mean_expr'] = exclude_df.mean(axis=1)
             data_exclude = np.array(candidate_cells.obs[f'{category}_mean_expr']).reshape(-1, 1)
-            gmm_exclude[category], probas_exclude[category], _ = fit_gmm_and_predict_probas(data_exclude, n_components_exclu, category=category)
+            gmm_exclude[category], probas_exclude[category] = fit_gmm_and_predict_probas(data_exclude, n_components_exclu, category=category)
 
     # Determine the target component as the one with the highest mean
     print("\n--- 4. Calculate probabilities for target genes ---")

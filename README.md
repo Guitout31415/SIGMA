@@ -41,7 +41,7 @@ Run the pipeline with Snakemake:
 snakemake \
   --config file=config_mk.conf threads=1 mem_mb=200000 \
   --cores 50 \
-  --resources mem_mb=200000 \
+  --resources mem_mb=200000
 ```
 
 - Adjust `--cores` as needed.

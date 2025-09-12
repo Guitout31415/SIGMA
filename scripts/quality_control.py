@@ -51,16 +51,17 @@ def calculate_outlier_vector(M, nmads):
     return (M < lower) | (M > upper)
 
 def run_scrublet(adata, n_jobs=1):
-    # Only use parallel processing for very large datasets where the benefit outweighs overhead
-    if adata.n_obs > 50_000 and n_jobs > 1:
-        print(f"Large dataset ({adata.n_obs} cells), running Scrublet in {n_jobs} batches...")
-        # Use larger batch sizes to reduce overhead
-        min_batch_size = 10_000  # Minimum batch size for efficiency
+    # Use parallel processing for datasets > 20,000 cells (reduced threshold)
+    if adata.n_obs > 20_000 and n_jobs > 1:
+        # Optimize batch size based on dataset size and available cores
+        min_batch_size = max(5_000, int(adata.n_obs / (n_jobs * 2)))  # Smaller batches for better parallelization
         batch_size = max(min_batch_size, int(np.ceil(adata.n_obs / n_jobs)))
         batches = [adata[i:i+batch_size] for i in range(0, adata.n_obs, batch_size)]
         
         def process_batch(batch):
-            scrub = scr.Scrublet(batch.X)
+            # Convert sparse matrix to dense for better performance with small batches
+            X_batch = batch.X.toarray() if hasattr(batch.X, 'toarray') else batch.X
+            scrub = scr.Scrublet(X_batch)
             scores, _ = scrub.scrub_doublets(verbose=False)
             try:
                 mask = scrub.call_doublets()
@@ -68,14 +69,13 @@ def run_scrublet(adata, n_jobs=1):
                 mask = scrub.call_doublets(threshold=0.25)
             return scores, mask
         
-        print(f"Processing {len(batches)} batches with batch size ~{batch_size}...")
-        results = Parallel(n_jobs=min(n_jobs, len(batches)))(delayed(process_batch)(b) for b in batches)
+        results = Parallel(n_jobs=min(n_jobs, len(batches)), backend='threading')(delayed(process_batch)(b) for b in batches)
         scores = np.concatenate([r[0] for r in results])
         masks = np.concatenate([r[1] for r in results])
-        print("Batch processing completed")
     else:
-        print(f"Running Scrublet sequentially ({adata.n_obs} cells)")
-        scrub = scr.Scrublet(adata.X)
+        # For sequential processing, also convert to dense if beneficial
+        X_data = adata.X.toarray() if hasattr(adata.X, 'toarray') and adata.n_obs < 100_000 else adata.X
+        scrub = scr.Scrublet(X_data)
         scores, _ = scrub.scrub_doublets(verbose=False)
         try:
             masks = scrub.call_doublets()
@@ -94,27 +94,31 @@ if __name__ == "__main__":
 
     # Check if quality control is enabled
     if args.do_QC == "False":
-        print("Quality control is disabled. Exiting...")
+        print("Quality control is disabled. Loading and saving data...")
+        
         adata = sc.read_h5ad(args.h5ad_file)
+        print(f"Dataset size: {adata.n_obs} cells x {adata.n_vars} genes")
+        
         adata = prepare_adata(adata, args.species)
         adata.write(args.output_file)
     else:
         # Start timer
         start_time = time.time()
 
-        # Optimize thread usage: use threads for numerical libraries, 
-        # but control joblib parallelism separately
-        os.environ["OMP_NUM_THREADS"] = str(min(args.threads, 4))  # Limit to avoid oversubscription
-        os.environ["OPENBLAS_NUM_THREADS"] = str(min(args.threads, 4))
-        os.environ["MKL_NUM_THREADS"] = str(min(args.threads, 4))
-        os.environ["NUMEXPR_NUM_THREADS"] = str(min(args.threads, 4))
+        # Optimize thread usage: dedicate more threads to computational libraries
+        os.environ["OMP_NUM_THREADS"] = str(args.threads)
+        os.environ["OPENBLAS_NUM_THREADS"] = str(args.threads)
+        os.environ["MKL_NUM_THREADS"] = str(args.threads)
+        os.environ["NUMEXPR_NUM_THREADS"] = str(args.threads)
 
         adata = sc.read_h5ad(args.h5ad_file)
         print("===============================")
         print("Quality control...")
+        print(f"Dataset size: {adata.n_obs} cells x {adata.n_vars} genes")
+        print(f"Memory usage: {adata.X.data.nbytes / 1e9:.2f} GB" if hasattr(adata.X, 'data') else f"Memory usage: {adata.X.nbytes / 1e9:.2f} GB")
 
         adata = prepare_adata(adata, args.species)
-        print(f"Initial number of cells: {adata.n_obs}")
+        print(f"\nInitial number of cells: {adata.n_obs}")
         adata = identify_special_genes(adata)
 
         print("Computing quality control metrics...")
@@ -133,7 +137,6 @@ if __name__ == "__main__":
             f"pct_counts_in_top_{args.percent_top}_genes"
         ]
 
-        # Calculate outliers sequentially (more efficient for small number of metrics)
         outlier_results = []
         for metric in metrics:
             outlier_results.append(calculate_outlier_vector(adata.obs[metric], args.nmads))
@@ -147,19 +150,14 @@ if __name__ == "__main__":
         print(f" - Number of cells after filtering low quality cells: {adata.n_obs}")
 
         print("Detecting doublets...")
-        # Use parallel processing only if beneficial
-        use_parallel = args.force_parallel or (adata.n_obs > 50_000 and args.threads > 1)
-        if use_parallel:
-            print(f"Using {args.threads} threads for doublet detection...")
+        # Use parallel processing more aggressively for large datasets
+        use_parallel = args.force_parallel or (adata.n_obs > 20_000 and args.threads > 1)
         adata = run_scrublet(adata, n_jobs=args.threads if use_parallel else 1)
-
 
         print(f"Final number of cells: {adata.n_obs}")
 
-
         execution_time = time.time() - start_time
         print(f"Total execution time: {execution_time:.4f} seconds")
-
 
         print(f"Saving to {args.output_file}")
         adata.write(args.output_file)

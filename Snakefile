@@ -66,7 +66,7 @@ rule find_target:
         os.path.join(CONFIG["Folder"]["output_folder"], "qc/{study}.h5ad")
     output:
         os.path.join(CONFIG["Folder"]["output_folder"], "find/{study}.h5ad")
-    threads: 1  # 1 thread pour paralléliser plusieurs jobs
+    threads: DEFAULT_THREADS
     resources:
         mem_mb=DEFAULT_MEM_MB
     params:
@@ -105,7 +105,7 @@ rule quality_control:
         os.path.join(CONFIG["Folder"]["output_folder"], "qc/{study}.h5ad")
     threads: DEFAULT_THREADS
     resources:
-        mem_mb=16000  # Réduire à 16 GB pour éviter surcharge mémoire
+        mem_mb=DEFAULT_MEM_MB
     params:
         percent_top=CONFIG['Options']['percent_top'],
         nmads=CONFIG['Options']['nmads'],
@@ -116,6 +116,7 @@ rule quality_control:
         stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr"),
         stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout")
     shell:
+        "if [ '{params.do_QC}' == 'True' ]; then "
         "python scripts/quality_control.py "
         "--h5ad_file '{input}' "
         "--output_file '{output}' "
@@ -123,7 +124,11 @@ rule quality_control:
         "--nmads {params.nmads} "
         "--do_QC {params.do_QC} "
         "--species {params.species} "
-        "--threads {threads} >> '{log.stdout}' 2>> '{log.stderr}'"
+        "--threads '{threads}'; "
+        "else "
+        "mkdir -p $(dirname '{output}') && cp '{input}' '{output}'; "
+        "echo 'Quality control is disabled. Loading and saving data...'; "
+        "fi >> '{log.stdout}' 2>> '{log.stderr}'"
 
 rule merge_logs:
     input:
