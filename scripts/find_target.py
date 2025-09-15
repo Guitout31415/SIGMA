@@ -16,9 +16,14 @@ import argparse
 import time
 from scipy.stats import gaussian_kde
 from pybiomart import Dataset
+import matplotlib.colors as mcolors
 
 # --- Constants ---
 TARGET_SUM = 1e6
+
+# Custom colormap from gray to red
+gray_to_red = mcolors.LinearSegmentedColormap.from_list("gray_to_red", [(0.5, 0.5, 0.5), (1, 0, 0)])
+blue_gray_red = mcolors.LinearSegmentedColormap.from_list("blue_gray_red", [(0, 0, 1), (0.5, 0.5, 0.5), (1, 0, 0)])
 
 def parse_arguments() -> argparse.Namespace:
     """Parses command-line arguments and returns them."""
@@ -282,7 +287,6 @@ def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_
         show=False,
         title=f"UMAP colored by target mean expression"
     )
-    axes[0, 0].set_facecolor('lightgrey')
     
     # Plot histogram of mean expression of candidate genes with GMM components
     axes[0, 1].hist(adata.obs["target_mean_expr"], bins=100, alpha=0.6, density=True)
@@ -303,19 +307,19 @@ def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_
     axes[0, 1].legend()
 
     # Plot UMAP colored by probability of being a target cell
+
     sc.pl.umap(
         adata,
         color="proba_target",
-        cmap="viridis",
+        cmap=gray_to_red,
         size=50,
         ax=axes[1, 0],
         show=False,
         title=f"UMAP colored by probability of being a target cell\n(Gaussian Mixture Model with {gmm.n_components} components)"
     )
-    axes[1, 0].set_facecolor('lightgrey')
     
     # Plot histogram of probability of being a target cell
-    axes[1, 1].hist(adata.obs["proba_target"], bins=70)
+    axes[1, 1].hist(adata.obs["proba_target"], bins=100)
     axes[1, 1].set(title="Histogram of Target Probability", xlabel="Target Probability", ylabel="Number of Cells")
     axes[1, 1].grid(True)
     
@@ -330,9 +334,9 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
 
     nrow = 0
     for exclude in exclude_names:
-        sc.pl.umap(adata, color=f"{exclude}_mean_expr", cmap="viridis", ax=axes[nrow, 0], size=50, show=False)
-        axes[nrow, 0].set_facecolor('lightgrey')
-        
+        sc.pl.umap(adata, color=f"{exclude}_mean_expr", cmap="viridis", ax=axes[nrow, 0], size=50, 
+                   show=False, title=f"UMAP colored by {exclude} mean expression")
+
         gmm = gmm_excludes[exclude]
         axes[nrow, 1].hist(adata.obs[f"{exclude}_mean_expr"], bins=100, alpha=0.6, density=True)
         axes[nrow, 1].set(
@@ -345,8 +349,16 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
         nrow += 1
 
     # Plot UMAP colored by score
-    sc.pl.umap(adata, color="score", cmap="viridis", ax=axes[nrow, 0], size=50, show=False)
-    axes[nrow, 0].set_facecolor('lightgrey')
+    try:
+        min_score = adata.obs["score"].min()
+        max_score = adata.obs["score"].max()
+        if min_score == max_score:
+            sc.pl.umap(adata, color="score", cmap='gray', ax=axes[nrow, 0], size=50, show=False)
+        else:
+            norm_cmap = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=0, vmax=max_score)
+            sc.pl.umap(adata, color="score", cmap=blue_gray_red, norm=norm_cmap, ax=axes[nrow, 0], size=50, show=False)
+    except:
+        sc.pl.umap(adata, color="score", cmap=gray_to_red, ax=axes[nrow, 0], size=50, show=False)
     axes[nrow, 0].set(title="UMAP colored by score")
     # Plot histogram of score
     axes[nrow, 1].hist(adata.obs["score"], bins=100, color='blue', alpha=0.7)
@@ -471,7 +483,7 @@ def find_target_cells(
                 candidate_cells.obs[f"proba_{category}"] = 0
             else:
                 candidate_cells.obs[f"proba_{category}"] = proba[:, exclude_component]
-            # score = score - candidate_cells.obs[f"proba_{category}"]
+            score = score - candidate_cells.obs[f"proba_{category}"]
 
         print(f"\n--- 5. Calculate score ---")
         candidate_cells.obs["score"] = score
