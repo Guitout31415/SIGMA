@@ -10,6 +10,7 @@ __pycache__/
 .Python
 data/
 sandbox/
+results*/
 build/
 develop-eggs/
 dist/
