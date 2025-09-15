@@ -32,10 +32,11 @@ def read_config(path: str) -> Dict[str, Any]:
         FileNotFoundError: If the file does not exist
         ValueError: If a configuration line is malformed or section unknown
     """
-    config = dict([["Metadata",[]], ["Candidate",[]], ["Markers",[]], ["Exclude",[]], 
-                   ["Thresholds",dict()], ["Folder",dict()], ["Options",dict()]])
-    section = None
-    list_sections = {"Metadata", "Candidate", "Markers", "Exclude"}
+    config = {"Metadata":[], "Candidate":[], "Target":[], 
+              "Exclude":{}, 
+              "Thresholds":{}, "Folder":{}, "Options":{}}
+    section = ""
+    list_sections = {"Metadata", "Candidate", "Target"}
     dict_sections = {"Thresholds", "Folder", "Options"}
 
     try:
@@ -44,14 +45,12 @@ def read_config(path: str) -> Dict[str, Any]:
                 line = line.strip()
                 if line.startswith("[") and line.endswith("]"):
                     section = line[1:-1]
-                    if section not in list_sections | dict_sections:
-                        raise ValueError(f"Unknown section '{section}' at line {lineno}")
                     continue
 
                 if section in list_sections:
                     if line != "":
                         config[section].append(line)
-                else:
+                elif section in dict_sections:
                     if line == "" or line == "\n":
                         continue
                     elif " = " not in line:
@@ -59,6 +58,12 @@ def read_config(path: str) -> Dict[str, Any]:
                     key, value = line.split(" = ", 1)
                     value = value.split("#")[0].strip()
                     config[section][key.strip()] = value
+                else:
+                    if section not in config['Exclude']:
+                        config['Exclude'][section] = []
+                    if line != "":
+                        config['Exclude'][section].append(line)
+
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found: {path}")
     except Exception as e:
