@@ -71,10 +71,11 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
         if not selected:
             st.error("No column selected for export.")
         else:
-            selected["proba_target"] = "proba_target"
-            if "score" in obs.columns:
+            proba_cols = [col for col in obs.columns if col.startswith("proba_")]
+            if len(proba_cols) >= 2:
                 selected["score"] = "score"
-                selected["proba_exclu"] = "proba_exclu"
+            for col in proba_cols:
+                selected[col] = col
             new_obs = obs[[col for col in selected.values()]].copy()
             new_obs.columns = list(selected.keys())
             new_adata = adata.copy()
