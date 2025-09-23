@@ -1,4 +1,4 @@
-# SIGMA : Single-cell Identification using Gaussian Mixture Approach
+# SIGMA : Single-cell Identifier using Gaussian Mixture Approach
 
 SIGMA is a bioinformatics pipeline for automated extraction of targeted cell types from multiple heterogeneous single-cell transcriptomic datasets (formats supported: `.h5ad`). It is designed to simplify and accelerate integrative large-scale single-cell analyses.
 
