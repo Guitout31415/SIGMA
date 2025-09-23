@@ -45,13 +45,13 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--species", type=str, default="hsapiens", help="Species name for Ensembl database.")
     return parser.parse_args()
 
-def preprocess_adata(adata: sc.AnnData) -> sc.AnnData:
+def preprocess_adata(adata: sc.AnnData, already_normalized: bool) -> sc.AnnData:
     """
-    Normalizes and logs AnnData, then computes PCA and UMAP.
+    Normalizes and logs AnnData, then computes PCA and UMAP if there are enough cells.
     
     This function modifies the input AnnData object by adding "raw" and "log1p" 
     layers, and populating the 'obsm' and 'uns' attributes with PCA and UMAP 
-    results, respectively.
+    results, respectively, only if there are at least 3 cells.
     
     Args:
         adata (sc.AnnData): An annotated data matrix.
@@ -60,14 +60,21 @@ def preprocess_adata(adata: sc.AnnData) -> sc.AnnData:
         sc.AnnData: The processed AnnData object.
     """
     adata = adata.copy()
-    adata.layers["raw"] = adata.X.copy()
-    sc.pp.normalize_total(adata, target_sum=TARGET_SUM)
-    sc.pp.log1p(adata)
-    adata.layers["log1p"] = adata.X.copy()
+
+    if already_normalized:
+        print("Data appears to be already normalized. Skipping normalization step.")
+    else:
+        adata.layers["raw"] = adata.X.copy()
+        sc.pp.normalize_total(adata, target_sum=TARGET_SUM)
+        sc.pp.log1p(adata)
+        adata.layers["log1p"] = adata.X.copy()
     
-    sc.pp.pca(adata, svd_solver='arpack')
-    sc.pp.neighbors(adata)
-    sc.tl.umap(adata)
+    # Only compute PCA, neighbors, and UMAP if there are enough cells
+    if adata.shape[0] >= 3:
+        sc.pp.pca(adata, svd_solver='arpack')
+        n_neighbors = min(15, adata.shape[0] - 1)
+        sc.pp.neighbors(adata, n_neighbors=n_neighbors)
+        sc.tl.umap(adata)
     return adata
 
 def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
@@ -274,19 +281,36 @@ def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_
     os.makedirs(plot_folder, exist_ok=True)
     plot_path = os.path.join(plot_folder, f"{study_name}_target.png")
 
-    print("Generating and saving UMAP and histogram plots...")
+    print("Generating and saving plots...")
     fig, axes = plt.subplots(2, 2, figsize=(20, 10))
     
-    # Plot UMAP colored by mean expression of candidate genes
-    sc.pl.umap(
-        adata,
-        color="target_mean_expr",
-        cmap="viridis",
-        size=50,
-        ax=axes[0, 0],
-        show=False,
-        title=f"UMAP colored by target mean expression"
-    )
+    if 'X_umap' in adata.obsm:
+        # Plot UMAP colored by mean expression of candidate genes
+        sc.pl.umap(
+            adata,
+            color="target_mean_expr",
+            cmap="viridis",
+            size=50,
+            ax=axes[0, 0],
+            show=False,
+            title=f"UMAP colored by target mean expression"
+        )
+        
+        # Plot UMAP colored by probability of being a target cell
+        sc.pl.umap(
+            adata,
+            color="proba_target",
+            cmap=gray_to_red,
+            size=50,
+            ax=axes[1, 0],
+            show=False,
+            title=f"UMAP colored by probability of being a target cell\n(Gaussian Mixture Model with {gmm.n_components} components)"
+        )
+    else:
+        axes[0, 0].text(0.5, 0.5, 'UMAP not computed\n(Too few cells)', ha='center', va='center', transform=axes[0, 0].transAxes)
+        axes[0, 0].set_title("UMAP colored by target mean expression")
+        axes[1, 0].text(0.5, 0.5, 'UMAP not computed\n(Too few cells)', ha='center', va='center', transform=axes[1, 0].transAxes)
+        axes[1, 0].set_title(f"UMAP colored by probability of being a target cell\n(Gaussian Mixture Model with {gmm.n_components} components)")
     
     # Plot histogram of mean expression of candidate genes with GMM components
     axes[0, 1].hist(adata.obs["target_mean_expr"], bins=100, alpha=0.6, density=True)
@@ -306,18 +330,6 @@ def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_
         axes[0, 1].plot(x, pdf_individual[:, i], '--', label=f'Component {i+1}')
     axes[0, 1].legend()
 
-    # Plot UMAP colored by probability of being a target cell
-
-    sc.pl.umap(
-        adata,
-        color="proba_target",
-        cmap=gray_to_red,
-        size=50,
-        ax=axes[1, 0],
-        show=False,
-        title=f"UMAP colored by probability of being a target cell\n(Gaussian Mixture Model with {gmm.n_components} components)"
-    )
-    
     # Plot histogram of probability of being a target cell
     axes[1, 1].hist(adata.obs["proba_target"], bins=100)
     axes[1, 1].set(title="Histogram of Target Probability", xlabel="Target Probability", ylabel="Number of Cells")
@@ -334,8 +346,12 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
 
     nrow = 0
     for exclude in exclude_names:
-        sc.pl.umap(adata, color=f"{exclude}_mean_expr", cmap="viridis", ax=axes[nrow, 0], size=50, 
-                   show=False, title=f"UMAP colored by {exclude} mean expression")
+        if 'X_umap' in adata.obsm:
+            sc.pl.umap(adata, color=f"{exclude}_mean_expr", cmap="viridis", ax=axes[nrow, 0], size=50, 
+                       show=False, title=f"UMAP colored by {exclude} mean expression")
+        else:
+            axes[nrow, 0].text(0.5, 0.5, 'UMAP not computed\n(Too few cells)', ha='center', va='center', transform=axes[nrow, 0].transAxes)
+            axes[nrow, 0].set_title(f"UMAP colored by {exclude} mean expression")
 
         gmm = gmm_excludes[exclude]
         axes[nrow, 1].hist(adata.obs[f"{exclude}_mean_expr"], bins=100, alpha=0.6, density=True)
@@ -349,17 +365,20 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
         nrow += 1
 
     # Plot UMAP colored by score
-    try:
-        min_score = adata.obs["score"].min()
-        max_score = adata.obs["score"].max()
-        if min_score == max_score:
-            sc.pl.umap(adata, color="score", cmap='gray', ax=axes[nrow, 0], size=50, show=False)
-        else:
-            norm_cmap = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=0, vmax=max_score)
-            sc.pl.umap(adata, color="score", cmap=blue_gray_red, norm=norm_cmap, ax=axes[nrow, 0], size=50, show=False)
-    except:
-        sc.pl.umap(adata, color="score", cmap=gray_to_red, ax=axes[nrow, 0], size=50, show=False)
-    axes[nrow, 0].set(title="UMAP colored by score")
+    if 'X_umap' in adata.obsm:
+        try:
+            min_score = adata.obs["score"].min()
+            max_score = adata.obs["score"].max()
+            if min_score == max_score:
+                sc.pl.umap(adata, color="score", cmap='gray', ax=axes[nrow, 0], size=50, show=False)
+            else:
+                norm_cmap = mcolors.TwoSlopeNorm(vmin=min_score, vcenter=0, vmax=max_score)
+                sc.pl.umap(adata, color="score", cmap=blue_gray_red, norm=norm_cmap, ax=axes[nrow, 0], size=50, show=False)
+        except:
+            sc.pl.umap(adata, color="score", cmap=gray_to_red, ax=axes[nrow, 0], size=50, show=False)
+    else:
+        axes[nrow, 0].text(0.5, 0.5, 'UMAP not computed\n(Too few cells)', ha='center', va='center', transform=axes[nrow, 0].transAxes)
+    axes[nrow, 0].set_title("UMAP colored by score")
     # Plot histogram of score
     axes[nrow, 1].hist(adata.obs["score"], bins=100, color='blue', alpha=0.7)
     axes[nrow, 1].set(title="Histogram of Score", xlabel="Score", ylabel="Number of Cells")
@@ -431,8 +450,14 @@ def find_target_cells(
     print(f"\n--- 2. Find candidate cells and log1p-cpm normalize ---")
     print(f"Keeping cells that express at least {int(min_genes_detected)} candidate genes, each above a detection threshold of {int(gene_detection_threshold)}.")
     
+    already_normalized = np.all(np.sum(adata.X, axis=1) == np.sum(adata.X, axis=1).astype(int).astype(float)) == False
+
     # Filter cells based on candidate gene expression
-    candidate_cells = find_candidate_cells(adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold)
+    if already_normalized:
+        print("Data appears to be already normalized. Impossible to find candidate cells. Continue with all cells.")
+        candidate_cells = adata.copy()
+    else:
+        candidate_cells = find_candidate_cells(adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold)
 
     if candidate_cells.shape[0] == 0:
         print("No candidate cells found. Returning an empty AnnData object.")
@@ -442,7 +467,7 @@ def find_target_cells(
     print(f"Number of candidate cells: {candidate_cells.shape[0]} ({candidate_cells.shape[0]/adata.shape[0]*100:.2f}%)")
 
     print("Normalizing and log1p transforming data...")
-    candidate_cells = preprocess_adata(candidate_cells)
+    candidate_cells = preprocess_adata(candidate_cells, already_normalized=already_normalized)
     
     # Compute mean expression of markered genes
     print("Compute mean expression of target genes...")

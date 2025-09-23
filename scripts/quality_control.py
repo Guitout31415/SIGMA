@@ -98,7 +98,17 @@ if __name__ == "__main__":
         os.environ["MKL_NUM_THREADS"] = str(args.threads)
         os.environ["NUMEXPR_NUM_THREADS"] = str(args.threads)
 
-        adata = sc.read_h5ad(args.h5ad_file)
+        try:
+            adata = sc.read_h5ad(args.h5ad_file)
+        except OSError as e:
+            if "wrong B-tree signature" in str(e):
+                print(f"Error: The h5ad file '{args.h5ad_file}' appears to be corrupted or truncated.")
+                print("This often happens if the file was not properly written or the write process was interrupted.")
+                print("Please regenerate the h5ad file from the source data.")
+                exit(1)
+            else:
+                raise
+
         print("===============================")
         print("Quality control...")
 
