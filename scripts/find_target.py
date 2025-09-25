@@ -71,7 +71,7 @@ def preprocess_adata(adata: sc.AnnData, already_normalized: bool) -> sc.AnnData:
     
     # Only compute PCA, neighbors, and UMAP if there are enough cells
     if adata.shape[0] >= 3:
-        sc.pp.pca(adata, svd_solver='arpack')
+        sc.pp.pca(adata, svd_solver='arpack', mask_var=None)
         n_neighbors = min(15, adata.shape[0] - 1)
         sc.pp.neighbors(adata, n_neighbors=n_neighbors)
         sc.tl.umap(adata)
@@ -361,7 +361,6 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
             ylabel="Density"
         )
         axes[nrow, 1].grid(True)
-        axes[nrow, 1].legend()
         nrow += 1
 
     # Plot UMAP colored by score
