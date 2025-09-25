@@ -60,6 +60,9 @@ if __name__ == "__main__":
 
     adata_merged = ad.concat(adatas, label="study", keys=study_names, index_unique="-")
 
+    # Reset index name to avoid conflicts with column names
+    adata_merged.obs.index.name = None
+
     # Try writing merged file with fallback on TypeError
     try:
         adata_merged.write(args.output_file)
