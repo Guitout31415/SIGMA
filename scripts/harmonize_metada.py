@@ -75,9 +75,12 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
             st.session_state.exported_files.add(base_name)
         else:
             proba_cols = [col for col in obs.columns if col.startswith("proba_")]
+            mean_cols = [col for col in obs.columns if col.endswith("_mean_expr")]
             if len(proba_cols) >= 2:
                 selected["score"] = "score"
             for col in proba_cols:
+                selected[col] = col
+            for col in mean_cols:
                 selected[col] = col
             new_obs = obs[[col for col in selected.values()]].copy()
             new_obs.columns = list(selected.keys())
