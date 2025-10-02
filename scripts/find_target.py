@@ -70,7 +70,7 @@ def preprocess_adata(adata: sc.AnnData, already_normalized: bool) -> sc.AnnData:
         adata.layers["log1p"] = adata.X.copy()
     
     # Only compute PCA, neighbors, and UMAP if there are enough cells
-    if adata.shape[0] >= 3:
+    if adata.shape[0] >= 10:
         sc.pp.pca(adata, svd_solver='arpack', mask_var=None)
         n_neighbors = min(15, adata.shape[0] - 1)
         sc.pp.neighbors(adata, n_neighbors=n_neighbors)

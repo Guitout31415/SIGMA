@@ -28,7 +28,19 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
     adata.var_names_make_unique()
     obs = adata.obs.copy()
 
+    # Create the output directory if it doesn't exist
+    os.makedirs(outdir, exist_ok=True)
+
     base_name = os.path.basename(data_file.name)
+    base_name_no_ext = os.path.splitext(base_name)[0]
+
+    if adata.n_obs == 0:
+        st.info("This file is empty")
+        export_path = os.path.join(outdir, f"{base_name_no_ext}.h5ad")
+        adata.write(export_path)
+        st.success(f"File {export_path} saved successfully.")
+        st.session_state.exported_files.add(base_name)
+        return
 
     # 2. Definition of standard names
     st.markdown("**Standard names to harmonize** (editable)")
@@ -43,7 +55,7 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
     mapping = {}
     st.markdown("### Column mapping")
     for std in standards_list:
-        suggestion = difflib.get_close_matches(std, obs.columns, n=1, cutoff=0.8)
+        suggestion = difflib.get_close_matches(std, obs.columns, n=1, cutoff=0.5)
         options = ["(none)"] + list(obs.columns)
         
         # Calculate default index based on suggestion
@@ -56,11 +68,7 @@ def harmonize_interface(data_file, columns_list=None, idx=None):
         col = st.selectbox(f"{std}", options, index=default_index, key=f"{std}_{data_file}_{idx}")
         mapping[std] = col if col != "(none)" else None
 
-    # Create the output directory if it doesn't exist
-    os.makedirs(outdir, exist_ok=True)
-
     # 5bis. Save harmonized .h5ad
-    base_name_no_ext = os.path.splitext(base_name)[0]
     default_h5ad = os.path.join(outdir, f"{base_name_no_ext}.h5ad")
 
     export_name = st.text_input("Output file name (.h5ad)", value=default_h5ad, key=f"export_name_{data_file}_{idx}")
