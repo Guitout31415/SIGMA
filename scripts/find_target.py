@@ -234,6 +234,9 @@ def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: st
     probas = gmm.predict_proba(data)
     return gmm, probas
 
+def ashmann_distance(m1, m2, s1, s2):
+    return np.abs(m1 - m2) / np.sqrt(2 * (s1**2 + s2**2))
+
 def find_candidate_cells(adata: sc.AnnData, genes: set[str], min_genes: float, threshold: float) -> sc.AnnData:
     """
     Filters cells in an AnnData object based on the expression of a set of genes.
@@ -444,7 +447,8 @@ def find_target_cells(
 
     print(f"Available candidate genes: {candidate_genes_avail}")
     print(f"Available target genes: {target_genes_avail}")
-    print(f"Available exclude genes: {exclude_genes_avail}")
+    for category, genes in exclude_genes_avail.items():
+        print(f"Available exclude genes for {category}: {genes}")
 
     print(f"\n--- 2. Find candidate cells and log1p-cpm normalize ---")
     print(f"Keeping cells that express at least {int(min_genes_detected)} candidate genes, each above a detection threshold of {int(gene_detection_threshold)}.")
@@ -495,7 +499,25 @@ def find_target_cells(
         print(f"Target component mean ({gmm_target.means_.flatten()[target_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
         candidate_cells.obs["proba_target"] = 0
     else:
-        candidate_cells.obs["proba_target"] = probas_target[:, target_component]
+        means_components = [float(m) for m in gmm_target.means_.flatten()]
+
+        lst_comp = [int(target_component)]
+        means_components[target_component] = -1 
+        target_before = np.argmax(means_components)
+
+        m_b, s_b = gmm_target.means_[target_before][0], np.sqrt(gmm_target.covariances_[target_before][0][0])
+        m_t, s_t = gmm_target.means_[target_component][0], np.sqrt(gmm_target.covariances_[target_component][0][0])
+
+        while ashmann_distance(m_b, m_t, s_b, s_t) < 1.5 and target_before > 0 and m_b >= min_mean_expression:
+            lst_comp.append(target_before)
+            target_component = target_before
+            means_components[target_component] = -1
+            target_before = np.argmax(means_components)
+        
+            m_b, s_b = gmm_target.means_[target_before][0], np.sqrt(gmm_target.covariances_[target_before][0][0])
+            m_t, s_t = gmm_target.means_[target_component][0], np.sqrt(gmm_target.covariances_[target_component][0][0])
+
+        candidate_cells.obs["proba_target"] = np.sum(probas_target[:, lst_comp], axis=1)
 
     if exclude_genes_avail:
         print("--- 4bis. Calculate probabilities for exclude genes ---")
@@ -506,7 +528,25 @@ def find_target_cells(
                 print(f"{category} component mean ({gmm.means_.flatten()[exclude_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
                 candidate_cells.obs[f"proba_{category}"] = 0
             else:
-                candidate_cells.obs[f"proba_{category}"] = proba[:, exclude_component]
+                means_components = [float(m) for m in gmm.means_.flatten()]
+
+                lst_comp = [int(exclude_component)]
+                means_components[exclude_component] = -1 
+                exclude_before = np.argmax(means_components)
+
+                m_b, s_b = gmm.means_[exclude_before][0], np.sqrt(gmm.covariances_[exclude_before][0][0])
+                m_t, s_t = gmm.means_[exclude_component][0], np.sqrt(gmm.covariances_[exclude_component][0][0])
+
+                while ashmann_distance(m_b, m_t, s_b, s_t) < 1.5 and exclude_before > 0 and m_b >= min_mean_expression:
+                    lst_comp.append(exclude_before)
+                    exclude_component = exclude_before
+                    means_components[exclude_component] = -1
+                    exclude_before = np.argmax(means_components)
+                
+                    m_b, s_b = gmm.means_[exclude_before][0], np.sqrt(gmm.covariances_[exclude_before][0][0])
+                    m_t, s_t = gmm.means_[exclude_component][0], np.sqrt(gmm.covariances_[exclude_component][0][0])
+                    
+                candidate_cells.obs[f"proba_{category}"] = np.sum(proba[:, lst_comp], axis=1)
             score = score - candidate_cells.obs[f"proba_{category}"]
 
         print(f"\n--- 5. Calculate score ---")
