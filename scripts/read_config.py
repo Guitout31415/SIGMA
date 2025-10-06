@@ -46,7 +46,8 @@ def read_config(path: str) -> Dict[str, Any]:
                 if line.startswith("[") and line.endswith("]"):
                     section = line[1:-1]
                     continue
-
+                if line.startswith("#") or line == "":
+                    continue
                 if section in list_sections:
                     if line != "":
                         config[section].append(line)
