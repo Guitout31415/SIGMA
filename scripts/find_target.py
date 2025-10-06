@@ -126,7 +126,7 @@ def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
     
     return {str(alias).upper() for alias in all_aliases if pd.notnull(alias) and str(alias).strip()}
 
-def kde_cross_validation(data, bw_candidates, cv_folds=5):
+def kde_cross_validation(data, bw_candidates, cv_folds=10):
     """
     Perform cross-validation to find optimal bandwidth for KDE.
     
@@ -170,7 +170,7 @@ def find_optimal_gmm_components(data: np.ndarray) -> tuple[int, np.ndarray | Non
     """
     data = data.flatten()
     data = data[np.isfinite(data)]  # Remove NaN and inf values
-    if len(data) < 5:
+    if len(data) < 2 or np.var(data) == 0:
         return 1, None
     bw_candidates = np.logspace(-1, 0.3, 150)  # From 0.1 to 2.0, 150 values logarithmically spaced
     print("Starting cross-validation for bandwidth selection...")
@@ -468,6 +468,11 @@ def find_target_cells(
         return candidate_cells
     
     print(f"Number of candidate cells: {candidate_cells.shape[0]} ({candidate_cells.shape[0]/adata.shape[0]*100:.2f}%)")
+
+    if candidate_cells.shape[0] < 2:
+        print("Not enough candidate cells for GMM fitting. Setting proba_target to 0.")
+        candidate_cells.obs["proba_target"] = np.zeros(candidate_cells.shape[0])
+        return candidate_cells
 
     print("Normalizing and log1p transforming data...")
     candidate_cells = preprocess_adata(candidate_cells, already_normalized=already_normalized)
