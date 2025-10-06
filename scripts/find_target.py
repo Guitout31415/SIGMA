@@ -235,7 +235,7 @@ def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: st
     return gmm, probas
 
 def ashmann_distance(m1, m2, s1, s2):
-    return np.abs(m1 - m2) / np.sqrt(2 * (s1**2 + s2**2))
+    return np.abs(m1 - m2) / np.sqrt(s1**2 + s2**2)
 
 def find_candidate_cells(adata: sc.AnnData, genes: set[str], min_genes: float, threshold: float) -> sc.AnnData:
     """
@@ -513,7 +513,7 @@ def find_target_cells(
         m_b, s_b = gmm_target.means_[target_before][0], np.sqrt(gmm_target.covariances_[target_before][0][0])
         m_t, s_t = gmm_target.means_[target_component][0], np.sqrt(gmm_target.covariances_[target_component][0][0])
 
-        while ashmann_distance(m_b, m_t, s_b, s_t) < 1.5 and target_before > 0 and m_b >= min_mean_expression:
+        while ashmann_distance(m_b, m_t, s_b, s_t) <= 2 and target_before > 0 and m_b >= min_mean_expression:
             lst_comp.append(target_before)
             target_component = target_before
             means_components[target_component] = -1
@@ -542,7 +542,7 @@ def find_target_cells(
                 m_b, s_b = gmm.means_[exclude_before][0], np.sqrt(gmm.covariances_[exclude_before][0][0])
                 m_t, s_t = gmm.means_[exclude_component][0], np.sqrt(gmm.covariances_[exclude_component][0][0])
 
-                while ashmann_distance(m_b, m_t, s_b, s_t) < 1.5 and exclude_before > 0 and m_b >= min_mean_expression:
+                while ashmann_distance(m_b, m_t, s_b, s_t) <= 2 and exclude_before > 0 and m_b >= min_mean_expression:
                     lst_comp.append(exclude_before)
                     exclude_component = exclude_before
                     means_components[exclude_component] = -1
