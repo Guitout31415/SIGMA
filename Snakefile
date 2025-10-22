@@ -35,7 +35,6 @@ rule merge_studies:
         CONFIG["Folder"]["output_folder"] + "/harmonized"
     output:
         CONFIG["Folder"]["output_folder"] + "/merge.h5ad"
-    threads: DEFAULT_THREADS
     resources:
         mem_mb=DEFAULT_MEM_MB
     shell:
@@ -49,7 +48,6 @@ rule harmonize_metadata:
         )
     output:
         directory(CONFIG["Folder"]["output_folder"] + "/harmonized")
-    threads: DEFAULT_THREADS
     resources:
         mem_mb=DEFAULT_MEM_MB
     params: 
@@ -79,6 +77,7 @@ rule find_target:
         n_components_exclu=CONFIG['Thresholds']['n_components_exclu'],
         min_mean_expression=float(CONFIG['Thresholds']['min_mean_expression']),
         species=CONFIG['Options']['species'],
+        do_QC=CONFIG['Options']['do_QC'],
         plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots")
     log:
         stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stderr"),
@@ -96,6 +95,7 @@ rule find_target:
         "--n_components_target {params.n_components_target} "
         "--n_components_exclu {params.n_components_exclu} "
         "--min_mean_expression {params.min_mean_expression} "
+        "--do_QC {params.do_QC} "
         "--species {params.species} "
         "--plot_folder {params.plot_folder} >> '{log.stdout}' 2>> '{log.stderr}'"
 

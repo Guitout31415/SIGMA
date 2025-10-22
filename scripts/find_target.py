@@ -1,4 +1,5 @@
 import numpy as np
+from rename_genes import rename_genes
 from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
 from scipy.interpolate import UnivariateSpline
@@ -41,6 +42,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--n_components_target", type=str, default="auto", help="Number of GMM components for target genes, or 'auto'.")
     parser.add_argument("--n_components_exclu", type=str, default="auto", help="Number of GMM components for exclude genes, or 'auto'.")
     parser.add_argument("--min_mean_expression", type=float, default=2.0, help="Minimum mean expression level for the higher component can be considered as target cluster.")
+    parser.add_argument("--do_QC", type=str, default="True", help="Whether to perform quality control")
     parser.add_argument("--plot_folder", type=str, default=None, help="Directory to save plots. Plots will not be generated if None.")
     parser.add_argument("--species", type=str, default="hsapiens", help="Species name for Ensembl database.")
     return parser.parse_args()
@@ -77,10 +79,25 @@ def preprocess_adata(adata: sc.AnnData, already_normalized: bool) -> sc.AnnData:
         sc.tl.umap(adata)
     return adata
 
+def prepare_adata(adata, species):
+    count_matrix = adata.X
+    original_var_names = pd.Index(adata.var_names)
+    renamed_genes = rename_genes(original_var_names.tolist(), species)
+
+    # Ensure every gene name is a string and fall back to the original name when missing
+    genes = pd.Series(renamed_genes, index=original_var_names, dtype="object")
+    missing_mask = genes.isna() | genes.eq("")
+    genes.loc[missing_mask] = genes.index[missing_mask]
+    genes = genes.astype(str).str.strip().str.upper()
+
+    adata = sc.AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
+    adata.var_names = genes
+    adata.var_names_make_unique()
+    return adata
+
 def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
     """
     Retrieves all known aliases for a list of genes using Ensembl Biomart.
-    Optimized version with caching and vectorized operations.
     
     Args:
         genes (list[str]): A list of gene names.
@@ -89,44 +106,22 @@ def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
     Returns:
         set[str]: A set of all unique aliases found.
     """
-    # Cache pour éviter de refaire la même requête
-    cache_key = f"{species}_biomart_data"
-    if not hasattr(get_gene_aliases, 'cache'):
-        get_gene_aliases.cache = {}
-    
-    # Récupérer ou créer les données biomart
-    if cache_key not in get_gene_aliases.cache:
-        print(f"Fetching gene data from Ensembl for {species}...")
-        dataset = Dataset(name=f'{species}_gene_ensembl', host='http://www.ensembl.org')
-        results = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
-        
-        # Préprocesser une seule fois : convertir en lowercase et créer un index
-        processed_data = []
-        for idx, row in results.iterrows():
-            row_values = [str(val).lower() if pd.notnull(val) else '' for val in row.values]
-            processed_data.append((idx, row_values, row.values))
-        
-        get_gene_aliases.cache[cache_key] = (results, processed_data)
-        print(f"Cached {len(results)} gene entries.")
-    
-    results, processed_data = get_gene_aliases.cache[cache_key]
-    
-    # Conversion vectorisée des gènes d'entrée
-    genes_lower = [gene.lower() for gene in genes]
-    genes_set = set(genes_lower)
-    
-    all_aliases = set()
-    
-    # Recherche optimisée
-    for idx, row_lower, row_original in processed_data:
-        # Vérifier si un des gènes recherchés est dans cette ligne
-        if any(gene_lower in row_lower for gene_lower in genes_set):
-            # Ajouter tous les alias de cette ligne
-            all_aliases.update([str(val) for val in row_original if pd.notnull(val)])
-    
-    return {str(alias).upper() for alias in all_aliases if pd.notnull(alias) and str(alias).strip()}
+    dataset = Dataset(name=f'{species}_gene_ensembl', host='http://www.ensembl.org')
+    genes_df = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
+    genes_upper = [g.strip().upper() for g in genes]
 
-def kde_cross_validation(data, bw_candidates, cv_folds=10):
+    alias_name = set()
+    for g in genes_upper:
+        mask = genes_df.isin([g]).any(axis=1)
+        rows = genes_df[mask]
+        for _, row in rows.iterrows():
+            alias_name.add(row['Gene stable ID'])
+            alias_name.add(row['Gene name'])
+            alias_name.add(row['HGNC symbol'])
+            alias_name.add(row['Gene Synonym'])
+    return alias_name
+
+def kde_cross_validation(data, bw_candidates, cv_folds=5):
     """
     Perform cross-validation to find optimal bandwidth for KDE.
     
@@ -172,7 +167,7 @@ def find_optimal_gmm_components(data: np.ndarray) -> tuple[int, np.ndarray | Non
     data = data[np.isfinite(data)]  # Remove NaN and inf values
     if len(data) < 2 or np.var(data) == 0:
         return 1, None
-    bw_candidates = np.logspace(-1, 0.3, 150)  # From 0.1 to 2.0, 150 values logarithmically spaced
+    bw_candidates = np.logspace(-1, 0.3, 100)  # From 0.1 to 2.0, 150 values logarithmically spaced
     print("Starting cross-validation for bandwidth selection...")
     # Perform cross-validation
     optimal_bw, _ = kde_cross_validation(data, bw_candidates, cv_folds=5)
@@ -181,7 +176,7 @@ def find_optimal_gmm_components(data: np.ndarray) -> tuple[int, np.ndarray | Non
     kde_optimal = gaussian_kde(data, bw_method=optimal_bw)
 
     # Evaluate KDE on a dense grid for smooth approximation
-    x_grid = np.linspace(data.min(), data.max(), 3000)
+    x_grid = np.linspace(data.min(), data.max(), 1500)
     y_grid = kde_optimal(x_grid)
 
     # Step 2: Find peaks
@@ -235,6 +230,18 @@ def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: st
     return gmm, probas
 
 def ashmann_distance(m1, m2, s1, s2):
+    """
+    Computes the Ashmann distance between two points in a feature space.
+
+    Args:
+        m1 (float): Mean of the first distribution.
+        m2 (float): Mean of the second distribution.
+        s1 (float): Standard deviation of the first distribution.
+        s2 (float): Standard deviation of the second distribution.
+
+    Return:
+        float: The Ashmann distance.
+    """
     return np.abs(m1 - m2) / np.sqrt(s1**2 + s2**2)
 
 def find_candidate_cells(adata: sc.AnnData, genes: set[str], min_genes: float, threshold: float) -> sc.AnnData:
@@ -453,7 +460,7 @@ def find_target_cells(
     print(f"\n--- 2. Find candidate cells and log1p-cpm normalize ---")
     print(f"Keeping cells that express at least {int(min_genes_detected)} candidate genes, each above a detection threshold of {int(gene_detection_threshold)}.")
     
-    already_normalized = np.all(np.sum(adata.X, axis=1) == np.sum(adata.X, axis=1).astype(int).astype(float)) == False
+    already_normalized = not (np.sum(adata.X, axis=1) == np.sum(adata.X, axis=1).astype(int)).all()
 
     # Filter cells based on candidate gene expression
     if already_normalized:
@@ -573,6 +580,8 @@ def main():
 
     try:
         adata = sc.read_h5ad(args.h5ad_file)
+        if args.do_QC == "False":
+            adata = prepare_adata(adata, species=args.species)
     except FileNotFoundError:
         print(f"Error: The file '{args.h5ad_file}' was not found.")
         return
