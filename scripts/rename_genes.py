@@ -10,6 +10,7 @@ Examples:
     ['gene1', 'gene2']
 """
 from typing import List
+import pandas as pd
 from pybiomart import Dataset
 
 def rename_genes(gene_list: List[str], 
@@ -39,14 +40,15 @@ def rename_genes(gene_list: List[str],
     # Harmonise les colonnes et majuscules
     genes_upper = [g.strip().upper() for g in gene_list]
 
-    # Recherche vectorisée
-    lookup = set(genes_upper)
-    genes_map = {}
-    for _, row in genes_df.iterrows():
-        for val in row:
-            if val in lookup and val not in genes_map:
-                genes_map[val] = row['Gene name']
-
-    # Remplacement
-    renamed_genes = [genes_map.get(g, g) for g in genes_upper]
-    return renamed_genes
+    iterrow_df_dict = dict((r,col) for col, row in genes_df.iterrows() for r in row)
+    genes_mapped = []
+    for g in genes_upper:
+        if g in iterrow_df_dict.keys():
+            rename_g = genes_df.loc[iterrow_df_dict[g], 'Gene name']
+            if pd.isna(rename_g) or rename_g == '':
+                genes_mapped.append(g)
+            else:
+                genes_mapped.append(rename_g)
+        else:
+            genes_mapped.append(g)
+    return genes_mapped

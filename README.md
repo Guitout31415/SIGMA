@@ -39,9 +39,9 @@ Run the pipeline with Snakemake:
 
 ```bash
 snakemake \
-  --config file=config_mk.conf threads=1 mem_mb=200000 \
-  --cores 50 \
-  --resources mem_mb=200000 \
+  --config file=config_mk.conf threads=1 mem_mb=20000 \
+  --cores 10 \
+  --resources mem_mb=200000
 ```
 
 - Adjust `--cores` as needed.

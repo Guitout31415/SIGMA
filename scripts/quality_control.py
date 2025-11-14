@@ -25,12 +25,13 @@ def parse_args():
 
 def prepare_adata(adata, species):
     count_matrix = adata.X
-    genes = rename_genes(adata.var_names, species)
-    # Convert gene names to uppercase
-    genes = pd.Series(genes).str.upper()
     adata = sc.AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
+    genes = rename_genes(adata.var_names.to_list(), species)
+    # Convert gene names to uppercase
     adata.var_names = genes
-    adata.var_names_make_unique()
+    if adata.var_names.has_duplicates:
+        adata.var_names_make_unique()
+    adata.layers["raw"] = adata.X.copy()
     return adata
 
 def identify_special_genes(adata):
@@ -50,30 +51,48 @@ def calculate_outlier_vector(M, nmads):
     return (M < lower) | (M > upper)
 
 def run_scrublet(adata, n_jobs=1):
+    if "total_counts" in adata.obs:
+        zero_total = adata.obs["total_counts"].to_numpy() == 0
+        if zero_total.any():
+            print(f"Removing {zero_total.sum()} cells with zero total counts before doublet detection.")
+            adata = adata[~zero_total].copy()
+
+    max_components = min(adata.n_obs - 1, adata.n_vars - 1)
+    if max_components < 1:
+        print("Dataset too small for Scrublet PCA. Skipping doublet detection.")
+        adata.obs["doublet_score"] = 0.0
+        adata.obs["doublet_class"] = pd.Categorical(["False"] * adata.n_obs)
+        return adata
+
+    n_prin_comps = min(30, max_components)
+    n_prin_comps = max(1, n_prin_comps)
+
+    def _run_scrublet_on_matrix(matrix, obs_count, var_count):
+        local_components = min(n_prin_comps, max(1, min(obs_count - 1, var_count - 1)))
+        scrub = scr.Scrublet(matrix)
+        scores, _ = scrub.scrub_doublets(verbose=False, n_prin_comps=local_components)
+        try:
+            mask = scrub.call_doublets()
+            threshold_info = getattr(scrub, "threshold_", None)
+            if threshold_info is not None:
+                print(f"Automatically identified doublet score threshold: {threshold_info}")
+        except Exception:
+            mask = scrub.call_doublets(threshold=0.25)
+            print("Using manual doublet score threshold: 0.25")
+        return scores, mask
+
     if adata.n_obs > 10_000:
         print("Large dataset, running Scrublet in batches...")
         batch_size = int(np.ceil(adata.n_obs / n_jobs))
         batches = [adata[i:i+batch_size] for i in range(0, adata.n_obs, batch_size)]
         def process_batch(batch):
-            scrub = scr.Scrublet(batch.X)
-            scores, _ = scrub.scrub_doublets(verbose=False)
-            try:
-                mask = scrub.call_doublets()
-            except:
-                mask = scrub.call_doublets(threshold=0.25)
+            scores, mask = _run_scrublet_on_matrix(batch.X, batch.n_obs, batch.n_vars)
             return scores, mask
         results = Parallel(n_jobs=n_jobs)(delayed(process_batch)(b) for b in batches)
         scores = np.concatenate([r[0] for r in results])
         masks = np.concatenate([r[1] for r in results])
     else:
-        scrub = scr.Scrublet(adata.X)
-        scores, _ = scrub.scrub_doublets(verbose=False)
-        try:
-            masks = scrub.call_doublets()
-            print(f"Automatically identified doublet score threshold: {scrub.threshold_}")
-        except:
-            masks = scrub.call_doublets(threshold=0.25)
-            print("Using manual doublet score threshold: 0.25")
+        scores, masks = _run_scrublet_on_matrix(adata.X, adata.n_obs, adata.n_vars)
     adata.obs["doublet_score"] = scores
     adata.obs["doublet_class"] = pd.Categorical(masks.astype(str))
     adata = adata[adata.obs["doublet_class"] == "False"].copy()
@@ -147,13 +166,10 @@ if __name__ == "__main__":
         print("Detecting doublets...")
         adata = run_scrublet(adata, n_jobs=args.threads)
 
-
         print(f"Final number of cells: {adata.n_obs}")
-
 
         execution_time = time.time() - start_time
         print(f"Total execution time: {execution_time:.4f} seconds")
-
 
         print(f"Saving to {args.output_file}")
         adata.write(args.output_file)

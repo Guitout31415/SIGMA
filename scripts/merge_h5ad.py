@@ -33,6 +33,7 @@ if __name__ == "__main__":
     ]
     studies_dict = {}
     gene_sets = []
+    obs_columns_union = []
     for study in study_files:
         study_name = os.path.splitext(study)[0]
         adata = sc.read_h5ad(os.path.join(args.study_folder, study))
@@ -44,6 +45,9 @@ if __name__ == "__main__":
             adata = adata[:, ~adata.var_names.duplicated(keep='first')]
         studies_dict[study_name] = adata
         gene_sets.append(set(adata.var_names))
+        for col in adata.obs.columns:
+            if col not in obs_columns_union:
+                obs_columns_union.append(col)
 
     # Find intersection of all gene sets
     common_genes = list(set.intersection(*gene_sets))
@@ -51,6 +55,9 @@ if __name__ == "__main__":
     # Subset each AnnData to common genes, preserving order
     for name in studies_dict:
         adata = studies_dict[name]
+        if obs_columns_union:
+            # Ensure all studies share the full set of obs columns, filling with NaN when absent
+            adata.obs = adata.obs.reindex(columns=obs_columns_union)
         genes_in_order = [gene for gene in adata.var_names if gene in common_genes]
         studies_dict[name] = adata[:, genes_in_order]
 
