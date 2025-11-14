@@ -95,19 +95,17 @@ def prepare_adata(adata, species):
     adata.var_names_make_unique()
     return adata
 
-def get_gene_aliases(genes: list[str], species: str = "hsapiens") -> set[str]:
+def get_gene_aliases(genes: list[str], genes_df: pd.DataFrame) -> set[str]:
     """
     Retrieves all known aliases for a list of genes using Ensembl Biomart.
     
     Args:
         genes (list[str]): A list of gene names.
-        species (str): The species name for the Ensembl database. Defaults to "hsapiens".
+        genes_df (pd.DataFrame): DataFrame containing gene information from Ensembl Biomart.
         
     Returns:
         set[str]: A set of all unique aliases found.
     """
-    dataset = Dataset(name=f'{species}_gene_ensembl', host='http://www.ensembl.org')
-    genes_df = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
     genes_upper = [g.strip().upper() for g in genes]
 
     alias_name = set()
@@ -439,32 +437,49 @@ def find_target_cells(
     Returns:
         sc.AnnData: The AnnData object with added 'proba_target' and other probability columns.
     """
-    print("\n--- 1. Finding Gene Aliases ---")
-    candidate_aliases = get_gene_aliases(candidate_genes, species=species)
-    target_aliases = get_gene_aliases(target_genes, species=species)
+    start_time = time.time()
+
+    dataset = Dataset(name=f'{species}_gene_ensembl', host='http://www.ensembl.org')
+    genes_df = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
     
+    print("\n--- 1. Finding Gene Aliases ---")
+    step_start = time.time()
+    candidate_aliases = get_gene_aliases(candidate_genes, genes_df=genes_df)
+    target_aliases = get_gene_aliases(target_genes, genes_df=genes_df)
+
     candidate_genes_avail = candidate_aliases.intersection(adata.var_names)
     target_genes_avail = target_aliases.intersection(adata.var_names)
 
     if exclude_genes != dict():
         exclude_genes_avail = dict()
         for category, genes in exclude_genes.items():
-            exclude_aliases = get_gene_aliases(genes, species=species)
+            exclude_aliases = get_gene_aliases(genes, genes_df=genes_df)
             exclude_genes_avail[category] = exclude_aliases.intersection(adata.var_names)
 
     print(f"Available candidate genes: {candidate_genes_avail}")
     print(f"Available target genes: {target_genes_avail}")
     for category, genes in exclude_genes_avail.items():
         print(f"Available exclude genes for {category}: {genes}")
+    print(f"Step 1 completed in {time.time() - step_start:.2f} seconds")
 
     print(f"\n--- 2. Find candidate cells and log1p-cpm normalize ---")
+    step_start = time.time()
     print(f"Keeping cells that express at least {int(min_genes_detected)} candidate genes, each above a detection threshold of {int(gene_detection_threshold)}.")
     
     already_normalized = not (np.sum(adata.X, axis=1) == np.sum(adata.X, axis=1).astype(int)).all()
 
     # Filter cells based on candidate gene expression
     if already_normalized:
-        print("Data appears to be already normalized. Impossible to find candidate cells. Continue with all cells.")
+        print("Data appears to be already normalized.")
+        if hasattr(adata, 'layers'):
+            for lay in adata.layers:
+                already_normalized = not (np.sum(adata.layers[lay], axis=1) == np.sum(adata.layers[lay], axis=1).astype(int)).all()
+                if not already_normalized:
+                    print(f"The layer '{lay}' appears to be not normalized, using it for further analysis.")
+                    adata.X = adata.layers[lay]
+                    break
+        else:
+            print("No layers found in AnnData object. Impossible to find candidate cells. Continue with all cells.")
         candidate_cells = adata.copy()
     else:
         candidate_cells = find_candidate_cells(adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold)
@@ -488,14 +503,18 @@ def find_target_cells(
     print("Compute mean expression of target genes...")
     marker_df = candidate_cells[:, list(target_genes_avail)].to_df()
     candidate_cells.obs['target_mean_expr'] = marker_df.mean(axis=1)
+    print(f"Step 2 completed in {time.time() - step_start:.2f} seconds")
     
     print("\n--- 3. Fitting GMM for Target genes ---")
+    step_start = time.time()
     data_target = np.array(candidate_cells.obs['target_mean_expr']).reshape(-1, 1)
     
     gmm_target, probas_target = fit_gmm_and_predict_probas(data_target, n_components_target, category="Target")
-    
+    print(f"Step 3 completed in {time.time() - step_start:.2f} seconds")
+
     if exclude_genes_avail:
         print("\n--- 3bis. Fitting GMM for Exclude genes ---")
+        step_start = time.time()
         gmm_exclude = dict()
         probas_exclude = dict()
         for category, genes in exclude_genes_avail.items():
@@ -503,9 +522,11 @@ def find_target_cells(
             candidate_cells.obs[f'{category}_mean_expr'] = exclude_df.mean(axis=1)
             data_exclude = np.array(candidate_cells.obs[f'{category}_mean_expr']).reshape(-1, 1)
             gmm_exclude[category], probas_exclude[category] = fit_gmm_and_predict_probas(data_exclude, n_components_exclu, category=category)
+        print(f"Step 3bis completed in {time.time() - step_start:.2f} seconds")
 
     # Determine the target component as the one with the highest mean
     print("\n--- 4. Calculate probabilities for target genes ---")
+    step_start = time.time()
     target_component = np.argmax(gmm_target.means_.flatten())
     if gmm_target.means_.flatten()[target_component] < min_mean_expression:
         print(f"Target component mean ({gmm_target.means_.flatten()[target_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
@@ -530,9 +551,11 @@ def find_target_cells(
             m_t, s_t = gmm_target.means_[target_component][0], np.sqrt(gmm_target.covariances_[target_component][0][0])
 
         candidate_cells.obs["proba_target"] = np.sum(probas_target[:, lst_comp], axis=1)
+    print(f"Step 4 completed in {time.time() - step_start:.2f} seconds")
 
     if exclude_genes_avail:
         print("--- 4bis. Calculate probabilities for exclude genes ---")
+        step_start = time.time()
         score = candidate_cells.obs["proba_target"]
         for category, gmm, proba in zip(gmm_exclude.keys(), gmm_exclude.values(), probas_exclude.values()):
             exclude_component = np.argmax(gmm.means_.flatten())
@@ -562,7 +585,8 @@ def find_target_cells(
             score = score - candidate_cells.obs[f"proba_{category}"]
 
         print(f"\n--- 5. Calculate score ---")
-        candidate_cells.obs["score"] = score
+        candidate_cells.obs["score"] = score.clip(lower=0)
+        print(f"Step 4bis and 5 completed in {time.time() - step_start:.2f} seconds")
 
     # Plot results if a folder is specified
     if plot_folder:
