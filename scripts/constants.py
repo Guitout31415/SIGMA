@@ -56,7 +56,7 @@ BATCH_SIZE_THRESHOLD = 10_000
 MIN_CELLS_FOR_UMAP = 10
 """Minimum cells required for UMAP computation."""
 
-KDE_GRID_POINTS = 1500
+KDE_GRID_POINTS = 1_500
 """Number of points in KDE grid for peak detection."""
 
 PEAK_PROMINENCE = 0.01
@@ -71,7 +71,7 @@ ASHMANN_DISTANCE_THRESHOLD = 2
 CV_FOLDS = 5
 """Number of cross-validation folds for KDE bandwidth selection."""
 
-CV_TEST_SIZE = 1 / 3
+CV_TEST_SIZE = 1/3
 """Test set proportion for cross-validation."""
 
 
