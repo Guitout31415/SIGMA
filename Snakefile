@@ -78,7 +78,8 @@ rule find_target:
         min_mean_expression=float(CONFIG['Thresholds']['min_mean_expression']),
         species=CONFIG['Options']['species'],
         do_QC=CONFIG['Options']['do_QC'],
-        plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots")
+        plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots"),
+        exclude_celltypes=CONFIG['Options']['exclude_celltypes']
     log:
         stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stderr"),
         stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
@@ -97,7 +98,8 @@ rule find_target:
         "--min_mean_expression {params.min_mean_expression} "
         "--do_QC {params.do_QC} "
         "--species {params.species} "
-        "--plot_folder {params.plot_folder} >> '{log.stdout}' 2>> '{log.stderr}'"
+        "--plot_folder {params.plot_folder} "
+        "--exclude_celltypes {params.exclude_celltypes} >> '{log.stdout}' 2>> '{log.stderr}'"
 
 rule quality_control:
     input:

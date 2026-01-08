@@ -45,6 +45,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--do_QC", type=str, default="True", help="Whether to perform quality control")
     parser.add_argument("--plot_folder", type=str, default=None, help="Directory to save plots. Plots will not be generated if None.")
     parser.add_argument("--species", type=str, default="hsapiens", help="Species name for Ensembl database.")
+    parser.add_argument("--exclude_celltypes", type=str, default="False", help="True if you want to exclude an entire cell type, False if you want to exclude specific 'low' genes.")
     return parser.parse_args()
 
 def preprocess_adata(adata: sc.AnnData, already_normalized: bool) -> sc.AnnData:
@@ -95,30 +96,6 @@ def prepare_adata(adata, species):
     adata.var_names_make_unique()
     return adata
 
-def get_gene_aliases(genes: list[str], genes_df: pd.DataFrame) -> set[str]:
-    """
-    Retrieves all known aliases for a list of genes using Ensembl Biomart.
-    
-    Args:
-        genes (list[str]): A list of gene names.
-        genes_df (pd.DataFrame): DataFrame containing gene information from Ensembl Biomart.
-        
-    Returns:
-        set[str]: A set of all unique aliases found.
-    """
-    genes_upper = [g.strip().upper() for g in genes]
-
-    alias_name = set()
-    for g in genes_upper:
-        mask = genes_df.isin([g]).any(axis=1)
-        rows = genes_df[mask]
-        for _, row in rows.iterrows():
-            alias_name.add(row['Gene stable ID'])
-            alias_name.add(row['Gene name'])
-            alias_name.add(row['HGNC symbol'])
-            alias_name.add(row['Gene Synonym'])
-    return alias_name
-
 def kde_cross_validation(data, bw_candidates, cv_folds=5):
     """
     Perform cross-validation to find optimal bandwidth for KDE.
@@ -158,15 +135,14 @@ def kde_cross_validation(data, bw_candidates, cv_folds=5):
 
     return optimal_bw, cv_scores
 
-def find_optimal_gmm_components(data: np.ndarray) -> tuple[int, np.ndarray | None]:
+def find_optimal_gmm_components(data: np.ndarray, exclude_celltypes: str, category: str) -> tuple[int, np.ndarray | None]:
     """
     """
     data = data.flatten()
-    data = data[np.isfinite(data)]  # Remove NaN and inf values
+    data = data[np.isfinite(data) & (data > 0.2)]  # Filter out NaN, inf, and very small values
     if len(data) < 2 or np.var(data) == 0:
         return 1, None
-    bw_candidates = np.logspace(-1, 0.3, 100)  # From 0.1 to 2.0, 150 values logarithmically spaced
-    print("Starting cross-validation for bandwidth selection...")
+    bw_candidates = np.logspace(-1, 0.3, 150)
     # Perform cross-validation
     optimal_bw, _ = kde_cross_validation(data, bw_candidates, cv_folds=5)
 
@@ -194,18 +170,19 @@ def find_optimal_gmm_components(data: np.ndarray) -> tuple[int, np.ndarray | Non
         
         peaks = np.array(significant_peaks)
 
-    n_peaks = len(peaks)
-    estimated_means = x_grid[peaks]
-
-    if n_peaks == 0:
+        n_peaks = len(peaks)
+        estimated_means = x_grid[peaks].reshape(-1,1)
+    else:
         n_peaks = 1
         estimated_means = None
-    else:
-        estimated_means = estimated_means.reshape(-1, 1)
+   
+    if exclude_celltypes == "False" and category != "Target":
+        n_peaks += 1
+        estimated_means = np.vstack([estimated_means, np.array([0])])
 
     return n_peaks, estimated_means
 
-def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: str) -> tuple[GaussianMixture, np.ndarray]:
+def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: str, exclude_celltypes: str) -> tuple[GaussianMixture, np.ndarray]:
     """
     Fits a Gaussian Mixture Model (GMM) to the data and predicts probabilities.
     
@@ -218,11 +195,14 @@ def fit_gmm_and_predict_probas(data: np.ndarray, n_components: str, category: st
     """
     if n_components == "auto":
         print(f"Automatically determining the number of components for {category}...")
-        optimal_n, estimated_means = find_optimal_gmm_components(data)
+        optimal_n, estimated_means = find_optimal_gmm_components(data, exclude_celltypes, category)
         print(f"\tOptimal number of components: {optimal_n}")
     else:
         optimal_n, estimated_means = int(n_components), None
         print(f"Using specified number of components for {category}: {optimal_n}")
+    data = data.flatten()
+    data = data[np.isfinite(data) & (data > 0.2)]
+    data = data.reshape(-1, 1)
     gmm = GaussianMixture(n_components=optimal_n, means_init=estimated_means).fit(data)
     probas = gmm.predict_proba(data)
     return gmm, probas
@@ -341,7 +321,9 @@ def plots_target(adata: sc.AnnData, gmm: GaussianMixture, study_name: str, plot_
     # Plot histogram of probability of being a target cell
     axes[1, 1].hist(adata.obs["proba_target"], bins=100)
     axes[1, 1].set(title="Histogram of Target Probability", xlabel="Target Probability", ylabel="Number of Cells")
-    axes[1, 1].grid(True)
+    axes[1, 1].set_yscale("log")
+    axes[1, 1].set_ylim(bottom=0)
+    axes[1, 1].grid(axis='y', linestyle='--')
     
     fig.tight_layout()
     fig.savefig(plot_path, dpi=300, bbox_inches="tight")
@@ -362,13 +344,20 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
             axes[nrow, 0].set_title(f"UMAP colored by {exclude} mean expression")
 
         gmm = gmm_excludes[exclude]
+
         axes[nrow, 1].hist(adata.obs[f"{exclude}_mean_expr"], bins=100, alpha=0.6, density=True)
+        x = np.linspace(adata.obs[f"{exclude}_mean_expr"].min(), adata.obs[f"{exclude}_mean_expr"].max(), 1000).reshape(-1, 1)
+        pdf = np.exp(gmm.score_samples(x))
+        pdf_individual = gmm.predict_proba(x) * pdf[:, None]
+        for i in range(gmm.n_components):
+            axes[nrow, 1].plot(x, pdf_individual[:, i], '--', label=f'Component {i+1}')
         axes[nrow, 1].set(
             title=f"Distribution of {exclude} mean expression (GMM with {gmm.n_components} components)",
             xlabel="Mean expression per cell",
             ylabel="Density"
         )
         axes[nrow, 1].grid(True)
+        axes[nrow, 1].legend()
         nrow += 1
 
     # Plot UMAP colored by score
@@ -389,7 +378,9 @@ def plots_exclude(adata: sc.AnnData, study_name: str, plot_folder: str, exclude_
     # Plot histogram of score
     axes[nrow, 1].hist(adata.obs["score"], bins=100, color='blue', alpha=0.7)
     axes[nrow, 1].set(title="Histogram of Score", xlabel="Score", ylabel="Number of Cells")
-    axes[nrow, 1].grid(True)
+    axes[nrow, 1].set_yscale("log")
+    axes[nrow, 1].set_ylim(bottom=0)
+    axes[nrow, 1].grid(axis='y', linestyle='--')
 
     fig.tight_layout()
     fig.savefig(plot_path, dpi=300, bbox_inches="tight")
@@ -406,7 +397,8 @@ def find_target_cells(
     n_components_exclu: str,
     min_mean_expression: float,
     plot_folder: str,
-    species: str
+    species: str,
+    exclude_celltypes: str
 ) -> sc.AnnData:
     """
     The main function to identify and extract target cells from an AnnData object.
@@ -436,25 +428,20 @@ def find_target_cells(
         
     Returns:
         sc.AnnData: The AnnData object with added 'proba_target' and other probability columns.
-    """
-    start_time = time.time()
-
-    dataset = Dataset(name=f'{species}_gene_ensembl', host='http://www.ensembl.org')
-    genes_df = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
-    
+    """ 
     print("\n--- 1. Finding Gene Aliases ---")
     step_start = time.time()
-    candidate_aliases = get_gene_aliases(candidate_genes, genes_df=genes_df)
-    target_aliases = get_gene_aliases(target_genes, genes_df=genes_df)
+    candidate_aliases = rename_genes(candidate_genes, species=species)
+    target_aliases = rename_genes(target_genes, species=species)
 
-    candidate_genes_avail = candidate_aliases.intersection(adata.var_names)
-    target_genes_avail = target_aliases.intersection(adata.var_names)
+    candidate_genes_avail = set(candidate_aliases).intersection(adata.var_names)
+    target_genes_avail = set(target_aliases).intersection(adata.var_names)
 
     if exclude_genes != dict():
         exclude_genes_avail = dict()
         for category, genes in exclude_genes.items():
-            exclude_aliases = get_gene_aliases(genes, genes_df=genes_df)
-            exclude_genes_avail[category] = exclude_aliases.intersection(adata.var_names)
+            exclude_aliases = rename_genes(genes, species=species)
+            exclude_genes_avail[category] = set(exclude_aliases).intersection(adata.var_names)
 
     print(f"Available candidate genes: {candidate_genes_avail}")
     print(f"Available target genes: {target_genes_avail}")
@@ -509,7 +496,7 @@ def find_target_cells(
     step_start = time.time()
     data_target = np.array(candidate_cells.obs['target_mean_expr']).reshape(-1, 1)
     
-    gmm_target, probas_target = fit_gmm_and_predict_probas(data_target, n_components_target, category="Target")
+    gmm_target, probas_target = fit_gmm_and_predict_probas(data_target, n_components_target, category="Target", exclude_celltypes="")
     print(f"Step 3 completed in {time.time() - step_start:.2f} seconds")
 
     if exclude_genes_avail:
@@ -521,7 +508,7 @@ def find_target_cells(
             exclude_df = candidate_cells[:, list(genes)].to_df()
             candidate_cells.obs[f'{category}_mean_expr'] = exclude_df.mean(axis=1)
             data_exclude = np.array(candidate_cells.obs[f'{category}_mean_expr']).reshape(-1, 1)
-            gmm_exclude[category], probas_exclude[category] = fit_gmm_and_predict_probas(data_exclude, n_components_exclu, category=category)
+            gmm_exclude[category], probas_exclude[category] = fit_gmm_and_predict_probas(data_exclude, n_components_exclu, category=category, exclude_celltypes=exclude_celltypes)
         print(f"Step 3bis completed in {time.time() - step_start:.2f} seconds")
 
     # Determine the target component as the one with the highest mean
@@ -543,12 +530,13 @@ def find_target_cells(
 
         while ashmann_distance(m_b, m_t, s_b, s_t) <= 2 and target_before > 0 and m_b >= min_mean_expression:
             lst_comp.append(target_before)
-            target_component = target_before
-            means_components[target_component] = -1
+            # target_component = target_before
+            # means_components[target_component] = -1
+            means_components[target_before] = -1
             target_before = np.argmax(means_components)
         
             m_b, s_b = gmm_target.means_[target_before][0], np.sqrt(gmm_target.covariances_[target_before][0][0])
-            m_t, s_t = gmm_target.means_[target_component][0], np.sqrt(gmm_target.covariances_[target_component][0][0])
+            # m_t, s_t = gmm_target.means_[target_component][0], np.sqrt(gmm_target.covariances_[target_component][0][0])
 
         candidate_cells.obs["proba_target"] = np.sum(probas_target[:, lst_comp], axis=1)
     print(f"Step 4 completed in {time.time() - step_start:.2f} seconds")
@@ -557,33 +545,44 @@ def find_target_cells(
         print("--- 4bis. Calculate probabilities for exclude genes ---")
         step_start = time.time()
         score = candidate_cells.obs["proba_target"]
-        for category, gmm, proba in zip(gmm_exclude.keys(), gmm_exclude.values(), probas_exclude.values()):
-            exclude_component = np.argmax(gmm.means_.flatten())
-            if gmm.means_.flatten()[exclude_component] < min_mean_expression:
-                print(f"{category} component mean ({gmm.means_.flatten()[exclude_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
-                candidate_cells.obs[f"proba_{category}"] = 0
-            else:
-                means_components = [float(m) for m in gmm.means_.flatten()]
+        if exclude_celltypes == "True" or exclude_celltypes == True:
+            print("Excluding entire cell types based on exclude genes...")
+            for category, gmm, proba in zip(gmm_exclude.keys(), gmm_exclude.values(), probas_exclude.values()):
+                exclude_component = np.argmax(gmm.means_.flatten())
+                if gmm.means_.flatten()[exclude_component] < min_mean_expression:
+                    print(f"{category} component mean ({gmm.means_.flatten()[exclude_component]:.4f}) is below the minimum mean expression threshold ({min_mean_expression}).")
+                    candidate_cells.obs[f"proba_{category}"] = 0
+                else:
+                    means_components = [float(m) for m in gmm.means_.flatten()]
 
-                lst_comp = [int(exclude_component)]
-                means_components[exclude_component] = -1 
-                exclude_before = np.argmax(means_components)
-
-                m_b, s_b = gmm.means_[exclude_before][0], np.sqrt(gmm.covariances_[exclude_before][0][0])
-                m_t, s_t = gmm.means_[exclude_component][0], np.sqrt(gmm.covariances_[exclude_component][0][0])
-
-                while ashmann_distance(m_b, m_t, s_b, s_t) <= 2 and exclude_before > 0 and m_b >= min_mean_expression:
-                    lst_comp.append(exclude_before)
-                    exclude_component = exclude_before
-                    means_components[exclude_component] = -1
+                    lst_comp = [int(exclude_component)]
+                    means_components[exclude_component] = -1 
                     exclude_before = np.argmax(means_components)
-                
+
                     m_b, s_b = gmm.means_[exclude_before][0], np.sqrt(gmm.covariances_[exclude_before][0][0])
                     m_t, s_t = gmm.means_[exclude_component][0], np.sqrt(gmm.covariances_[exclude_component][0][0])
-                    
-                candidate_cells.obs[f"proba_{category}"] = np.sum(proba[:, lst_comp], axis=1)
-            score = score - candidate_cells.obs[f"proba_{category}"]
 
+                    while ashmann_distance(m_b, m_t, s_b, s_t) <= 2 and exclude_before > 0 and m_b >= min_mean_expression:
+                        lst_comp.append(exclude_before)
+                        # exclude_component = exclude_before
+                        # means_components[exclude_component] = -1
+                        means_components[exclude_before] = -1
+                        exclude_before = np.argmax(means_components)
+                    
+                        m_b, s_b = gmm.means_[exclude_before][0], np.sqrt(gmm.covariances_[exclude_before][0][0])
+                        # m_t, s_t = gmm.means_[exclude_component][0], np.sqrt(gmm.covariances_[exclude_component][0][0])
+                        
+                    candidate_cells.obs[f"proba_{category}"] = np.sum(proba[:, lst_comp], axis=1)
+                score = score - candidate_cells.obs[f"proba_{category}"]
+        else:
+            print("Excluding specific 'low' genes based on exclude genes...")
+            for category, gmm, proba in zip(gmm_exclude.keys(), gmm_exclude.values(), probas_exclude.values()):
+                exclude_component = np.argmin(gmm.means_.flatten())
+                if gmm.means_.flatten()[exclude_component] > min_mean_expression:
+                    candidate_cells.obs[f"proba_{category}"] = 1
+                else:
+                    candidate_cells.obs[f"proba_{category}"] = 1-proba[:, exclude_component]
+                score = score - candidate_cells.obs[f"proba_{category}"]
         print(f"\n--- 5. Calculate score ---")
         candidate_cells.obs["score"] = score.clip(lower=0)
         print(f"Step 4bis and 5 completed in {time.time() - step_start:.2f} seconds")
@@ -615,7 +614,7 @@ def main():
         adata = adata[:, ~adata.var_names.duplicated(keep='first')]
 
     print("\n====================================")
-    print("Beginning target cell extraction...")
+    print("Beginning target cell identification...")
     print("====================================")
     
     adata_target = find_target_cells(
@@ -630,7 +629,8 @@ def main():
         n_components_exclu=args.n_components_exclu,
         min_mean_expression=args.min_mean_expression,
         plot_folder=args.plot_folder,
-        species=args.species
+        species=args.species,
+        exclude_celltypes=args.exclude_celltypes
     )
 
     print("\n------------------------------------")
