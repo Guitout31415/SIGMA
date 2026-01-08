@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """
+rename_genes.py
+---------------
 Function to rename genes stored in a list using standard Ensembl gene names.
 
 Author: Guillaume Lemaire
@@ -9,46 +11,107 @@ Examples:
     >>> rename_genes(["ENSG00000100000", "ENSG00000100001"])
     ['gene1', 'gene2']
 """
-from typing import List
+
+from typing import List, Dict
 import pandas as pd
 from pybiomart import Dataset
 
-def rename_genes(gene_list: List[str], 
-                 species: str = "hsapiens", 
-                 host: str = "http://www.ensembl.org") -> List[str]:
+from constants import (
+    DEFAULT_SPECIES,
+    DEFAULT_HOST,
+    ENSEMBL_ATTRIBUTES,
+    GENE_NAME_COLUMN,
+)
+
+
+def _fetch_ensembl_data(species: str, host: str) -> pd.DataFrame:
+    """Fetch gene data from Ensembl BioMart.
+
+    Args:
+        species: Species identifier (e.g., 'hsapiens')
+        host: Ensembl host URL
+
+    Returns:
+        DataFrame with gene annotation data
+
+    Raises:
+        ValueError: If unable to connect to Ensembl
+    """
+    try:
+        dataset = Dataset(name=f"{species}_gene_ensembl", host=host)
+        return dataset.query(attributes=ENSEMBL_ATTRIBUTES)
+    except Exception as e:
+        raise ValueError(f"Unable to connect to Ensembl host: {e}")
+
+
+def _build_gene_lookup(genes_df: pd.DataFrame) -> Dict[str, int]:
+    """Build a lookup dictionary from gene identifiers to DataFrame row indices.
+
+    Args:
+        genes_df: DataFrame containing gene annotation data
+
+    Returns:
+        Dictionary mapping gene identifiers to their row index
+    """
+    lookup = {}
+    for row_idx, row in genes_df.iterrows():
+        for identifier in row:
+            if pd.notna(identifier) and identifier != "":
+                lookup[identifier] = row_idx
+    return lookup
+
+
+def _map_single_gene(
+    gene: str, lookup: Dict[str, int], genes_df: pd.DataFrame
+) -> str:
+    """Map a single gene identifier to its standard name.
+
+    Args:
+        gene: Gene identifier (uppercase)
+        lookup: Gene lookup dictionary
+        genes_df: DataFrame with gene annotations
+
+    Returns:
+        Mapped gene name or original identifier if not found
+    """
+    if gene not in lookup:
+        return gene
+
+    row_idx = lookup[gene]
+    gene_name = genes_df.loc[row_idx, GENE_NAME_COLUMN]
+
+    if pd.isna(gene_name) or gene_name == "":
+        return gene
+
+    return gene_name
+
+
+def rename_genes(
+    gene_list: List[str],
+    species: str = DEFAULT_SPECIES,
+    host: str = DEFAULT_HOST,
+) -> List[str]:
     """Rename genes using Ensembl gene names.
 
     Args:
-        genes (List[str]): List of gene names
-        species (str): Species (default: hsapiens)
+        gene_list: List of gene names/identifiers
+        species: Species identifier (default: 'hsapiens')
+        host: Ensembl host URL
+
     Returns:
-        List[str]: List of renamed gene names
+        List of renamed gene names
+
     Raises:
         ValueError: If unable to connect to Ensembl host
+        AssertionError: If input types are invalid
     """
     assert isinstance(gene_list, list), "genes must be a list"
     assert all(isinstance(gene, str) for gene in gene_list), "all genes must be strings"
     assert isinstance(species, str), "species must be a string"
     assert isinstance(host, str), "host must be a string"
 
-    try:
-        dataset = Dataset(name=f"{species}_gene_ensembl", host=host)
-        genes_df = dataset.query(attributes=['ensembl_gene_id', 'external_gene_name', 'hgnc_symbol', 'external_synonym'])
-    except Exception as e:
-        raise ValueError(f"Unable to connect to Ensembl host: {e}")
+    genes_df = _fetch_ensembl_data(species, host)
+    lookup = _build_gene_lookup(genes_df)
 
-    # Harmonise les colonnes et majuscules
     genes_upper = [g.strip().upper() for g in gene_list]
-
-    iterrow_df_dict = dict((r,col) for col, row in genes_df.iterrows() for r in row)
-    genes_mapped = []
-    for g in genes_upper:
-        if g in iterrow_df_dict.keys():
-            rename_g = genes_df.loc[iterrow_df_dict[g], 'Gene name']
-            if pd.isna(rename_g) or rename_g == '':
-                genes_mapped.append(g)
-            else:
-                genes_mapped.append(rename_g)
-        else:
-            genes_mapped.append(g)
-    return genes_mapped
+    return [_map_single_gene(g, lookup, genes_df) for g in genes_upper]
