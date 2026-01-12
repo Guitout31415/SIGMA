@@ -20,14 +20,15 @@ from adata_utils import (
     prepare_adata_target,
     check_if_normalized,
     preprocess_adata,
+    normalize_and_log,
     find_candidate_cells,
     remove_duplicate_genes,
 )
 from gmm_utils import (
-    fit_gmm_and_predict_probas,
+    fit_gmm,
     identify_target_components,
 )
-from plotting import save_target_plots, save_exclude_plots
+from plotting import plot_target_figures, plot_exclude_figures
 
 
 # =============================================================================
@@ -180,11 +181,9 @@ def step1_find_gene_aliases(
 
     return candidate_genes_avail, target_genes_avail, exclude_genes_avail
 
-
-def step2_find_candidates_and_normalize(
+def step2_find_candidates(
     adata: sc.AnnData,
     candidate_genes_avail: set,
-    target_genes_avail: set,
     min_genes_detected: float,
     gene_detection_threshold: float,
 ) -> tuple:
@@ -193,7 +192,6 @@ def step2_find_candidates_and_normalize(
     Args:
         adata: Input AnnData object
         candidate_genes_avail: Set of available candidate genes
-        target_genes_avail: Set of available target genes
         min_genes_detected: Minimum candidate genes per cell
         gene_detection_threshold: Expression threshold for detection
 
@@ -201,7 +199,7 @@ def step2_find_candidates_and_normalize(
         Tuple of (candidate_cells, is_valid) where is_valid indicates
         if there are enough cells to continue
     """
-    print("\n--- 2. Find candidate cells and log1p-cpm normalize ---")
+    print("\n--- 2. Find candidate cells ---")
     step_start = time.time()
     print(
         f"Keeping cells expressing >= {int(min_genes_detected)} candidate genes, "
@@ -210,28 +208,42 @@ def step2_find_candidates_and_normalize(
 
     already_normalized = check_if_normalized(adata)
 
+    candidate_cells = None
     if already_normalized:
         print("Data appears to be already normalized.")
+        raw_layer_name = None
         if hasattr(adata, "layers"):
             for lay in adata.layers:
                 layer_adata = sc.AnnData(adata.layers[lay], obs=adata.obs, var=adata.var)
                 if not check_if_normalized(layer_adata):
-                    print(f"Layer '{lay}' appears raw, using for further analysis.")
-                    adata.X = adata.layers[lay]
-                    already_normalized = False
+                    raw_layer_name = lay
                     break
-            else:
-                print("No raw layers found. Continuing with all cells.")
-        candidate_cells = adata.copy()
+        if raw_layer_name is not None:
+            print(f"Layer '{raw_layer_name}' appears raw, using for further analysis.")
+            adata.X = adata.layers[raw_layer_name]
+            adata.layers["raw"] = adata.X.copy()
+            adata = normalize_and_log(adata, layer="raw")
+            candidate_cells = find_candidate_cells(
+                adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold
+            )
+        else:
+            print("No raw layers found. Continuing with all cells.")
+            candidate_cells = adata.copy()
     else:
+        adata.layers["raw"] = adata.X.copy()
         candidate_cells = find_candidate_cells(
             adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold
         )
+
+    # Work on a copy to avoid modifying views
+    if candidate_cells is not None:
+        candidate_cells = candidate_cells.copy()
 
     # Check if we have enough cells
     if candidate_cells.shape[0] == 0:
         print("No candidate cells found. Returning empty AnnData.")
         candidate_cells.obs["proba_target"] = np.zeros(candidate_cells.shape[0])
+        print(f"Step 2 completed in {time.time() - step_start:.2f} seconds")
         return candidate_cells, False
 
     pct = candidate_cells.shape[0] / adata.shape[0] * 100
@@ -240,194 +252,150 @@ def step2_find_candidates_and_normalize(
     if candidate_cells.shape[0] < 2:
         print("Not enough cells for GMM. Setting proba_target to 0.")
         candidate_cells.obs["proba_target"] = np.zeros(candidate_cells.shape[0])
+        print(f"Step 2 completed in {time.time() - step_start:.2f} seconds")
         return candidate_cells, False
 
-    print("Normalizing and log1p transforming data...")
-    candidate_cells = preprocess_adata(candidate_cells, already_normalized)
-
-    print("Computing mean expression of target genes...")
-    marker_df = candidate_cells[:, list(target_genes_avail)].to_df()
-    candidate_cells.obs["target_mean_expr"] = marker_df.mean(axis=1)
     print(f"Step 2 completed in {time.time() - step_start:.2f} seconds")
+
+    if "raw" in candidate_cells.layers:
+        candidate_cells.X = candidate_cells.layers["raw"].copy()
 
     return candidate_cells, True
 
+def step3_fit_gmm_target(candidate_cells: sc.AnnData,
+                         target_genes_avail: set,
+                         exclude_genes_avail: dict,
+                         n_components_target: str) -> tuple:
+    
+    already_normalized = check_if_normalized(candidate_cells)
+    sub_candidate = candidate_cells.copy()
+    # Remove exclude genes from raw data
+    genes_remove = [str(g) for genes in exclude_genes_avail.values() for g in genes if g not in target_genes_avail]
+    sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)] # Remove exclude genes from raw data
+    # sub_candidate = sub_candidate[:, list(target_genes_avail)]
+    sub_candidate = preprocess_adata(sub_candidate, layer="raw_target", already_normalized=already_normalized)
+    # sub_candidate.X = sub_candidate.layers["raw_target_log1p"].copy()
 
-def step3_fit_gmm_target(
-    candidate_cells: sc.AnnData,
-    n_components_target: str,
-) -> tuple:
-    """Step 3: Fit GMM for target genes.
+    # Compute mean expression of target genes
+    target_df = sub_candidate[:, list(target_genes_avail)].to_df()
+    candidate_cells.obs["target_mean_expr"] = target_df.mean(axis=1)
 
-    Args:
-        candidate_cells: AnnData with candidate cells
-        n_components_target: Number of GMM components or 'auto'
+    # Fit GMM and predict probabilities for target genes
+    gmm_target = fit_gmm(candidate_cells.obs["target_mean_expr"], n_components_target, "Target", "False")
 
-    Returns:
-        Tuple of (gmm_target, probas_target)
-    """
-    print("\n--- 3. Fitting GMM for Target genes ---")
-    step_start = time.time()
+    return gmm_target, candidate_cells
 
-    data_target = np.array(candidate_cells.obs["target_mean_expr"]).reshape(-1, 1)
-    gmm_target, probas_target = fit_gmm_and_predict_probas(
-        data_target, n_components_target, category="Target", exclude_celltypes=""
-    )
-    print(f"Step 3 completed in {time.time() - step_start:.2f} seconds")
-
-    return gmm_target, probas_target
-
-
-def step3bis_fit_gmm_exclude(
-    candidate_cells: sc.AnnData,
-    exclude_genes_avail: dict,
-    n_components_exclu: str,
-    exclude_celltypes: str,
-) -> tuple:
-    """Step 3bis: Fit GMM for exclusion genes.
-
-    Args:
-        candidate_cells: AnnData with candidate cells
-        exclude_genes_avail: Dict of available exclusion genes by category
-        n_components_exclu: Number of GMM components or 'auto'
-        exclude_celltypes: Whether to exclude entire cell types
-
-    Returns:
-        Tuple of (gmm_exclude, probas_exclude) dicts
-    """
-    gmm_exclude = {}
-    probas_exclude = {}
-
+def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
+                            target_genes_avail: set,
+                            exclude_genes_avail: dict,
+                            n_components_exclu: str,
+                            exclude_celltypes: str) -> tuple:
+    gmm_excludes = {}
+    
     if not exclude_genes_avail:
-        return gmm_exclude, probas_exclude
+        print("\n--- 3bis. No Exclude genes provided, skipping GMM fitting for Exclude genes ---")
+        return gmm_exclude, None
 
     print("\n--- 3bis. Fitting GMM for Exclude genes ---")
     step_start = time.time()
 
+    already_normalized = check_if_normalized(candidate_cells)
     for category, genes in exclude_genes_avail.items():
-        exclude_df = candidate_cells[:, list(genes)].to_df()
-        candidate_cells.obs[f"{category}_mean_expr"] = exclude_df.mean(axis=1)
-        data_exclude = np.array(candidate_cells.obs[f"{category}_mean_expr"]).reshape(-1, 1)
-        gmm_exclude[category], probas_exclude[category] = fit_gmm_and_predict_probas(
-            data_exclude, n_components_exclu, category=category, exclude_celltypes=exclude_celltypes
-        )
-    print(f"Step 3bis completed in {time.time() - step_start:.2f} seconds")
+        sub_candidate = candidate_cells.copy()
+        
+        # Remove target genes from raw data
+        genes_remove = [str(g) for g in target_genes_avail if g not in genes]
+        sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)]
+        sub_candidate = preprocess_adata(sub_candidate, layer=f"raw_{category}", already_normalized=already_normalized)
+        # sub_candidate.X = sub_candidate.layers[f"raw_{category}_log1p"]
+        
+        # Compute mean expression of exclude genes
+        exclude_df = sub_candidate[:, list(genes)].X
+        candidate_cells.obs[f"exclude_mean_expr_{category}"] = exclude_df.mean(axis=1)
+        
+        # Fit GMM and predict probabilities for exclude genes
+        gmm_exclude = fit_gmm(candidate_cells.obs[f"exclude_mean_expr_{category}"], n_components_exclu, category, exclude_celltypes)
 
-    return gmm_exclude, probas_exclude
+        # Store results
+        gmm_excludes[category] = gmm_exclude
+    
+    return gmm_excludes, candidate_cells
 
+def step4_calculate_target_probabilities(candidate_cells: sc.AnnData,
+                                         gmm_target: object,
+                                         min_mean_expression: float) -> sc.AnnData:
+    target_indices = identify_target_components(gmm_target, min_mean_expression, "True")
 
-def step4_calculate_target_probabilities(
-    candidate_cells: sc.AnnData,
-    gmm_target,
-    probas_target: np.ndarray,
-    min_mean_expression: float,
-) -> sc.AnnData:
-    """Step 4: Calculate target probabilities for each cell.
-
-    Args:
-        candidate_cells: AnnData with candidate cells
-        gmm_target: Fitted GMM for target genes
-        probas_target: Target probabilities from GMM
-        min_mean_expression: Minimum expression threshold
-
-    Returns:
-        AnnData with 'proba_target' column added
-    """
-    print("\n--- 4. Calculate probabilities for target genes ---")
-    step_start = time.time()
-
-    candidate_cells.obs["proba_target"] = identify_target_components(
-        gmm_target, probas_target, min_mean_expression
-    )
-    print(f"Step 4 completed in {time.time() - step_start:.2f} seconds")
-
-    return candidate_cells
-
-
-def step4bis_and_5_calculate_exclusion_and_score(
-    candidate_cells: sc.AnnData,
-    gmm_exclude: dict,
-    probas_exclude: dict,
-    min_mean_expression: float,
-    exclude_celltypes: str,
-) -> sc.AnnData:
-    """Step 4bis & 5: Calculate exclusion probabilities and final score.
-
-    Args:
-        candidate_cells: AnnData with candidate cells and proba_target
-        gmm_exclude: Dict of fitted GMMs for exclusion genes
-        probas_exclude: Dict of exclusion probabilities
-        min_mean_expression: Minimum expression threshold
-        exclude_celltypes: Whether to exclude entire cell types
-
-    Returns:
-        AnnData with exclusion probabilities and score columns added
-    """
-    if not gmm_exclude:
+    if isinstance(target_indices, int) and target_indices == -1:
+        print("No valid target components identified. Setting proba_target to 0.")
+        candidate_cells.obs["proba_target"] = np.zeros(candidate_cells.shape[0])
         return candidate_cells
+    
+    # Predict probabilities
+    probas = gmm_target.predict_proba(candidate_cells.obs["target_mean_expr"].values.reshape(-1, 1))
 
-    print("--- 4bis. Calculate probabilities for exclude genes ---")
-    step_start = time.time()
-
-    score = candidate_cells.obs["proba_target"].copy()
-
-    if exclude_celltypes in ("True", True):
-        print("Excluding entire cell types based on exclude genes...")
-        for category in gmm_exclude:
-            gmm = gmm_exclude[category]
-            proba = probas_exclude[category]
-            exclude_proba = identify_target_components(gmm, proba, min_mean_expression)
-            candidate_cells.obs[f"proba_{category}"] = exclude_proba
-            score = score - exclude_proba
+    # handle single integer index (results in 1D slice) or multi-index
+    if isinstance(target_indices, int):
+        candidate_cells.obs["proba_target"] = probas[:, target_indices]
     else:
-        print("Excluding specific 'low' genes based on exclude genes...")
-        for category in gmm_exclude:
-            gmm = gmm_exclude[category]
-            proba = probas_exclude[category]
-            exclude_component = np.argmin(gmm.means_.flatten())
-
-            if gmm.means_.flatten()[exclude_component] > min_mean_expression:
-                candidate_cells.obs[f"proba_{category}"] = 1
-            else:
-                candidate_cells.obs[f"proba_{category}"] = 1 - proba[:, exclude_component]
-            score = score - candidate_cells.obs[f"proba_{category}"]
-
-    print("\n--- 5. Calculate score ---")
-    candidate_cells.obs["score"] = score.clip(lower=0)
-    print(f"Steps 4bis and 5 completed in {time.time() - step_start:.2f} seconds")
-
+        candidate_cells.obs["proba_target"] = np.sum(probas[:, target_indices], axis=1)
+    
     return candidate_cells
 
+def step4bis_calculate_exclude_probabilities(candidate_cells: sc.AnnData,
+                                         gmm_exclude: object,
+                                         min_mean_expression: float,
+                                         exclude_celltypes: str) -> sc.AnnData:
+    
+    for category in gmm_exclude.keys():
+        print(f"\nCalculating exclusion probabilities for category: {category}")
+        gmm_excl = gmm_exclude[category]
+        exclude_indices = identify_target_components(gmm_excl, min_mean_expression, exclude_celltypes)
+        
+        if isinstance(exclude_indices, int) and exclude_indices == -1:
+            print(f"No valid exclusion components identified for {category}. Setting proba_{category} to 0.")
+            candidate_cells.obs[f"proba_{category}"] = np.zeros(candidate_cells.shape[0])
+        else:
+            # Predict probabilities
+            probas = gmm_excl.predict_proba(candidate_cells.obs[f"exclude_mean_expr_{category}"].values.reshape(-1, 1))
 
-def step6_generate_plots(
-    candidate_cells: sc.AnnData,
-    gmm_target,
-    gmm_exclude: dict,
-    exclude_genes: dict,
-    study_name: str,
-    plot_folder: str,
-) -> None:
-    """Step 6: Generate and save diagnostic plots.
+            if exclude_celltypes == "False":
+                probas = 1-probas
+
+            # handle single integer index (results in 1D slice) or multi-index
+            if isinstance(exclude_indices, int):
+                candidate_cells.obs[f"proba_{category}"] = probas[:, exclude_indices]
+            else:
+                candidate_cells.obs[f"proba_{category}"] = np.sum(probas[:, exclude_indices], axis=1)
+
+            if isinstance(exclude_indices, int) and exclude_indices == -1:
+                print("No valid target components identified. Setting proba_target to 0.")
+                candidate_cells.obs["proba_target"] = np.zeros(candidate_cells.shape[0])
+    
+    return candidate_cells
+
+def step5_calculate_score(candidate_cells: sc.AnnData) -> sc.AnnData:
+    """Step 5: Calculate final target score for candidate cells.
+
+    Combines target and exclusion probabilities into a final score.
 
     Args:
-        candidate_cells: AnnData with all probability columns
-        gmm_target: Fitted GMM for target genes
-        gmm_exclude: Dict of fitted GMMs for exclusion genes
-        exclude_genes: Original exclude genes dict (for category names)
-        study_name: Name of the study for filenames
-        plot_folder: Directory to save plots
+        candidate_cells: AnnData with proba_target and proba_exclude_* columns
     """
-    if not plot_folder:
-        return
+    print("\n--- 5. Calculating final target score ---")
+    step_start = time.time()
 
-    print("\n--- 6. Generating plots ---")
-    save_target_plots(candidate_cells, gmm_target, study_name, plot_folder)
-    if exclude_genes:
-        save_exclude_plots(
-            candidate_cells, study_name, plot_folder,
-            exclude_names=list(exclude_genes.keys()),
-            gmm_excludes=gmm_exclude,
-        )
+    proba_exclude_cols = [col for col in candidate_cells.obs.columns if col.startswith("proba_") and col != "proba_target"]
+    if proba_exclude_cols:
+        proba_exclude_sum = candidate_cells.obs[proba_exclude_cols].sum(axis=1)
+    else:
+        proba_exclude_sum = 0
+
+    candidate_cells.obs["score"] = candidate_cells.obs["proba_target"] - proba_exclude_sum
+    candidate_cells.obs["score"] = candidate_cells.obs["score"].clip(lower=0)
+
+    print(f"Step 5 completed in {time.time() - step_start:.2f} seconds")
+    return candidate_cells
 
 
 # =============================================================================
@@ -485,37 +453,39 @@ def find_target_cells(
     )
 
     # Step 2: Find candidate cells and normalize
-    candidate_cells, is_valid = step2_find_candidates_and_normalize(
-        adata, candidate_genes_avail, target_genes_avail,
-        min_genes_detected, gene_detection_threshold
+    candidate_cells, is_valid = step2_find_candidates(
+        adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold
     )
     if not is_valid:
-        return candidate_cells
+        print("Insufficient candidate cells to proceed further.")
 
     # Step 3: Fit GMM for target genes
-    gmm_target, probas_target = step3_fit_gmm_target(
-        candidate_cells, n_components_target
+    gmm_target, candidate_cells = step3_fit_gmm_target(
+        candidate_cells, target_genes_avail, exclude_genes_avail, n_components_target
     )
 
     # Step 3bis: Fit GMM for exclusion genes
-    gmm_exclude, probas_exclude = step3bis_fit_gmm_exclude(
-        candidate_cells, exclude_genes_avail, n_components_exclu, exclude_celltypes
+    gmm_exclude, candidate_cells = step3bis_fit_gmm_exclude(
+        candidate_cells, target_genes_avail, exclude_genes_avail, n_components_exclu, exclude_celltypes
     )
 
     # Step 4: Calculate target probabilities
     candidate_cells = step4_calculate_target_probabilities(
-        candidate_cells, gmm_target, probas_target, min_mean_expression
+        candidate_cells, gmm_target, min_mean_expression
     )
 
-    # Step 4bis & 5: Calculate exclusion probabilities and score
-    candidate_cells = step4bis_and_5_calculate_exclusion_and_score(
-        candidate_cells, gmm_exclude, probas_exclude, min_mean_expression, exclude_celltypes
+    # Step 4bis: Calculate exclusion probabilities
+    candidate_cells = step4bis_calculate_exclude_probabilities(
+        candidate_cells, gmm_exclude, min_mean_expression, exclude_celltypes
     )
 
-    # Step 6: Generate plots
-    step6_generate_plots(
-        candidate_cells, gmm_target, gmm_exclude, exclude_genes, study_name, plot_folder
-    )
+    # Step 5: Calculate final target score
+    candidate_cells = step5_calculate_score(candidate_cells)
+
+    # Plotting
+    if plot_folder is not None:
+        plot_target_figures(candidate_cells, gmm_target, plot_folder, study_name)
+        plot_exclude_figures(candidate_cells, gmm_exclude, plot_folder, study_name)
 
     return candidate_cells
 

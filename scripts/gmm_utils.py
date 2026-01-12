@@ -8,7 +8,7 @@ cross-validation for bandwidth selection, and target component identification.
 """
 
 from typing import Dict, Optional, Tuple
-
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
@@ -101,8 +101,6 @@ def find_optimal_gmm_components(
             n_components: Estimated number of GMM components
             initial_means: Optional initial mean estimates for GMM initialization
     """
-    data = data.flatten()
-    data = data[np.isfinite(data) & (data > 0.2)]
 
     if len(data) < 2 or np.var(data) == 0:
         return 1, None
@@ -138,7 +136,7 @@ def find_optimal_gmm_components(
     if exclude_celltypes == "False" and category != "Target":
         n_peaks += 1
         if estimated_means is not None:
-            estimated_means = np.vstack([estimated_means, np.array([0])])
+            estimated_means = np.vstack([np.array([0]), estimated_means])
 
     return n_peaks, estimated_means
 
@@ -148,48 +146,39 @@ def find_optimal_gmm_components(
 # =============================================================================
 
 
-def fit_gmm_and_predict_probas(
-    data: np.ndarray,
-    n_components: str,
-    category: str,
-    exclude_celltypes: str,
-) -> Tuple[GaussianMixture, np.ndarray]:
-    """Fit GMM and compute posterior probabilities.
-
+def fit_gmm(data: np.ndarray, 
+            n_components: str, 
+            category: str, 
+            exclude_celltypes: str):
+    """Fit GMM to data with specified or auto-determined components.
+    
     Args:
         data: Expression data array
         n_components: Number of components ('auto' or integer string)
-        category: Category name for logging
+        category: Category name for logging ('Target' or exclusion category)
         exclude_celltypes: Whether to exclude entire cell types ('True'/'False')
-
+        
     Returns:
-        Tuple of (fitted_gmm, probabilities)
-            fitted_gmm: Fitted GaussianMixture model
-            probabilities: Posterior probability matrix (n_cells x n_components)
+        Fitted GaussianMixture model.    
     """
+    # Filter data for fitting only (training data)
+    mask = (data != 0) & np.isfinite(data)
+    data_train = data[mask]
+
     if n_components == "auto":
         print(f"Automatically determining components for {category}...")
         optimal_n, estimated_means = find_optimal_gmm_components(
-            data, exclude_celltypes, category
+            data_train, exclude_celltypes, category
         )
         print(f"\tOptimal number of components: {optimal_n}")
     else:
         optimal_n, estimated_means = int(n_components), None
         print(f"Using specified components for {category}: {optimal_n}")
 
-    # Filter data for fitting only (training data)
-    data_flat = data.flatten()
-    mask = np.isfinite(data_flat) & (data_flat > 0.2)
-    data_train = data_flat[mask].reshape(-1, 1)
-
     gmm = GaussianMixture(n_components=optimal_n, means_init=estimated_means)
-    gmm.fit(data_train)
-    
-    # Predict probabilities for ALL cells (not just filtered)
-    data_all = data_flat.reshape(-1, 1)
-    probas = gmm.predict_proba(data_all)
+    gmm.fit(np.asarray(data_train).reshape(-1, 1))
 
-    return gmm, probas
+    return gmm
 
 
 # =============================================================================
@@ -222,8 +211,8 @@ def ashmann_distance(m1: float, m2: float, s1: float, s2: float) -> float:
 
 def identify_target_components(
     gmm: GaussianMixture,
-    probas: np.ndarray,
     min_mean_expression: float,
+    exclude_celltypes: str,
 ) -> np.ndarray:
     """Identify components belonging to the target population.
 
@@ -238,33 +227,38 @@ def identify_target_components(
     Returns:
         Array of target probabilities per cell (sum of target component probs)
     """
-    target_component = np.argmax(gmm.means_.flatten())
+    
+    if exclude_celltypes == "True":
+        i_target_component = np.argmax(gmm.means_.flatten())
 
-    if gmm.means_.flatten()[target_component] < min_mean_expression:
-        print(
-            f"Target component mean ({gmm.means_.flatten()[target_component]:.4f}) "
-            f"is below threshold ({min_mean_expression})."
-        )
-        return np.zeros(probas.shape[0])
+        if gmm.means_.flatten()[i_target_component] < min_mean_expression:
+            print(
+                f"Target component mean ({gmm.means_.flatten()[i_target_component]:.4f}) "
+                f"is below threshold ({min_mean_expression})."
+            )
+            return -1
 
-    # Find components close to target using Ashmann distance
-    means_components = [float(m) for m in gmm.means_.flatten()]
-    target_indices = [int(target_component)]
-    means_components[target_component] = -1
+        # Find components close to target using Ashmann distance
+        means_components = [float(m) for m in gmm.means_.flatten()] 
+        target_indices = [int(i_target_component)]
+        means_components[i_target_component] = -1 # Remove the highest mean to find others
 
-    target_before = np.argmax(means_components)
-    m_t = gmm.means_[target_component][0]
-    s_t = np.sqrt(gmm.covariances_[target_component][0][0])
+        i_target_previous = np.argmax(means_components) # Previous highest mean
+        mean_targ = gmm.means_[i_target_component][0]
+        std_targ = np.sqrt(gmm.covariances_[i_target_component][0][0])
 
-    while target_before > 0 and means_components[target_before] >= min_mean_expression:
-        m_b = gmm.means_[target_before][0]
-        s_b = np.sqrt(gmm.covariances_[target_before][0][0])
+        while i_target_previous > 0 and means_components[i_target_previous] >= min_mean_expression:
+            mean_prev = gmm.means_[i_target_previous][0]
+            std_prev = np.sqrt(gmm.covariances_[i_target_previous][0][0])
 
-        if ashmann_distance(m_b, m_t, s_b, s_t) > ASHMANN_DISTANCE_THRESHOLD:
-            break
+            if ashmann_distance(mean_prev, mean_targ, std_prev, std_targ) > ASHMANN_DISTANCE_THRESHOLD:
+                break
 
-        target_indices.append(target_before)
-        means_components[target_before] = -1
-        target_before = np.argmax(means_components)
+            target_indices.append(i_target_previous)
+            means_components[i_target_previous] = -1
+            i_target_previous = np.argmax(means_components)
+    else:
+        print("Excluding specific 'low' genes based on exclude genes...")
+        target_indices = np.argmin(gmm.means_.flatten()).tolist()
 
-    return np.sum(probas[:, target_indices], axis=1)
+    return np.array(target_indices)
