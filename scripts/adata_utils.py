@@ -149,7 +149,7 @@ def check_if_normalized(adata: AnnData) -> bool:
     return not np.allclose(row_sums, row_sums.astype(int))
 
 
-def normalize_and_log(adata: AnnData, target_sum: float = TARGET_SUM) -> AnnData:
+def normalize_and_log(adata: AnnData, target_sum: float = TARGET_SUM, layer: str = "raw") -> AnnData:
     """Apply CPM normalization and log1p transformation.
 
     Stores raw counts in 'raw' layer and normalized counts in 'log1p' layer.
@@ -162,14 +162,14 @@ def normalize_and_log(adata: AnnData, target_sum: float = TARGET_SUM) -> AnnData
         Normalized AnnData with layers
     """
     adata = adata.copy()
-    adata.layers["raw"] = adata.X.copy()
+    adata.layers[layer] = adata.X.copy()
     sc.pp.normalize_total(adata, target_sum=target_sum)
     sc.pp.log1p(adata)
-    adata.layers["log1p"] = adata.X.copy()
+    adata.layers[f"{layer}_log1p"] = adata.X.copy()
     return adata
 
 
-def preprocess_adata(adata: AnnData, already_normalized: bool) -> AnnData:
+def preprocess_adata(adata: AnnData, layer: str = None, already_normalized: bool = False) -> AnnData:
     """Normalize data and compute dimensionality reduction.
 
     Args:
@@ -184,7 +184,7 @@ def preprocess_adata(adata: AnnData, already_normalized: bool) -> AnnData:
     if already_normalized:
         print("Data appears to be already normalized. Skipping normalization step.")
     else:
-        adata = normalize_and_log(adata)
+        adata = normalize_and_log(adata, layer=layer)
 
     # Compute embeddings only with enough cells
     if adata.shape[0] >= MIN_CELLS_FOR_UMAP:
