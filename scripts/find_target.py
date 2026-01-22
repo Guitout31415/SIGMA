@@ -254,8 +254,8 @@ def step2_find_candidates(
 
     print(f"Step 2 completed in {time.time() - step_start:.2f} seconds")
 
-    if "raw" in candidate_cells.layers:
-        candidate_cells.X = candidate_cells.layers["raw"].copy()
+    if "raw_log1p" in candidate_cells.layers:
+        candidate_cells.X = candidate_cells.layers["raw_log1p"].copy()
 
     return candidate_cells, True
 
@@ -264,14 +264,14 @@ def step3_fit_gmm_target(candidate_cells: sc.AnnData,
                          exclude_genes_avail: dict,
                          n_components_target: str) -> tuple:
     
-    already_normalized = check_if_normalized(candidate_cells)
+    # already_normalized = check_if_normalized(candidate_cells)
     sub_candidate = candidate_cells.copy()
-    # Remove exclude genes from raw data
-    genes_remove = [str(g) for genes in exclude_genes_avail.values() for g in genes if g not in target_genes_avail]
-    sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)] # Remove exclude genes from raw data
-    # sub_candidate.layers["raw_target"] = sub_candidate.X.copy()
-    sub_candidate = preprocess_adata(sub_candidate, layer="raw_target", already_normalized=already_normalized)
-    sub_candidate.X = sub_candidate.layers["raw_target_log1p"].copy()
+    # # Remove exclude genes from raw data
+    # genes_remove = [str(g) for genes in exclude_genes_avail.values() for g in genes if g not in target_genes_avail]
+    # sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)] # Remove exclude genes from raw data
+    # # sub_candidate.layers["raw_target"] = sub_candidate.X.copy()
+    # sub_candidate = preprocess_adata(sub_candidate, layer="raw_target", already_normalized=already_normalized)
+    # sub_candidate.X = sub_candidate.layers["raw_target_log1p"].copy()
 
     # Compute mean expression of target genes
     target_df = sub_candidate[:, list(target_genes_avail)].to_df()
@@ -294,18 +294,18 @@ def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
         return gmm_exclude, None
 
     print("\n--- 3bis. Fitting GMM for Exclude genes ---")
-    step_start = time.time()
+    # step_start = time.time()
 
-    already_normalized = check_if_normalized(candidate_cells)
+    # already_normalized = check_if_normalized(candidate_cells)
     for category, genes in exclude_genes_avail.items():
         sub_candidate = candidate_cells.copy()
         
         # Remove target genes from raw data
-        genes_remove = [str(g) for g in target_genes_avail if g not in genes]
-        sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)]
-        # sub_candidate.layers[f"raw_{category}"] = sub_candidate.X.copy()
-        sub_candidate = preprocess_adata(sub_candidate, layer=f"raw_{category}", already_normalized=already_normalized)
-        sub_candidate.X = sub_candidate.layers[f"raw_{category}_log1p"]
+        # genes_remove = [str(g) for g in target_genes_avail if g not in genes]
+        # sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)]
+        # # sub_candidate.layers[f"raw_{category}"] = sub_candidate.X.copy()
+        # sub_candidate = preprocess_adata(sub_candidate, layer=f"raw_{category}", already_normalized=already_normalized)
+        # sub_candidate.X = sub_candidate.layers[f"raw_{category}_log1p"]
         
         # Compute mean expression of exclude genes
         exclude_df = sub_candidate[:, list(genes)].to_df()
@@ -335,7 +335,7 @@ def step4_calculate_target_probabilities(candidate_cells: sc.AnnData,
 
     candidate_cells.obs["proba_target"] = np.sum(probas[:, target_indices], axis=1)
     
-    # Save target_indices to candidate_cells.uns for reference
+    # Save target_indices to candidate_cells.uns for plottings
     candidate_cells.uns["target_indices"] = target_indices
     
     return candidate_cells
@@ -478,6 +478,12 @@ def find_target_cells(
     candidate_cells = step4_calculate_target_probabilities(
         candidate_cells, gmm_target, min_mean_expression
     )
+
+    if candidate_cells.obs["proba_target"].sum() == 0:
+        print("No cells assigned to target components. Returning empty AnnData.")
+        empty_adata = sc.AnnData(X=np.zeros((0, candidate_cells.shape[1])), var=candidate_cells.var.copy())
+        empty_adata.obs["proba_target"] = np.array([])
+        return empty_adata
 
     # Step 4bis: Calculate exclusion probabilities
     candidate_cells = step4bis_calculate_exclude_probabilities(
