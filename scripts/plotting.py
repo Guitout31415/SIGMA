@@ -60,8 +60,15 @@ def plot_target_figures(
     os.makedirs(plot_folder, exist_ok=True)
     plot_path = os.path.join(plot_folder, f"{study_name}_target.png")
 
+    try:
+        sc.tl.pca(adata)
+        sc.pp.neighbors(adata)
+        sc.tl.umap(adata)
+    except:
+        pass
+    
     fig, ax = plt.subplots(2,2,figsize=(20, 10))
-
+    
     if 'X_umap' in adata.obsm:
         # Plot UMAP colored by target mean expression
         sc.pl.umap(
@@ -81,6 +88,26 @@ def plot_target_figures(
     
     # Plot GMM histogram fit
     plot_gmm_fit_hist(ax[0,1], adata, gmm_target, "target_mean_expr")
+    # Ensure target_indices is iterable
+    target_indices = adata.uns.get("target_indices", [])
+    if isinstance(target_indices, (int, np.integer)):
+        target_indices = [target_indices]
+    elif isinstance(target_indices, np.ndarray):
+        target_indices = target_indices.tolist()
+
+    # Update legend to mark target components with *
+    handles, labels = ax[0,1].get_legend_handles_labels()
+    new_labels = []
+    for i, label in enumerate(labels):
+        if i == 0:
+            new_labels.append(label)
+            continue
+        if i-1 in target_indices:
+            new_labels.append(f"{label}*")
+        else:
+            new_labels.append(label)
+    
+    ax[0,1].legend(handles, new_labels)
 
     # Plot histogram of target probabilities
     ax[1,1].hist(adata.obs['proba_target'], bins=100)
@@ -89,6 +116,7 @@ def plot_target_figures(
         xlabel="Target Probability",
         ylabel="Number of Cells"
     )
+       
     ax[1,1].set_yscale('log')
     ax[1,1].grid(axis='y', linestyle='--')
 
@@ -120,8 +148,14 @@ def plot_exclude_figures(
     os.makedirs(plot_folder, exist_ok=True)
     plot_path = os.path.join(plot_folder, f"{study_name}_exclude.png")
 
-    nrows = len(gmm_exclude.keys())+1
+    try:
+        sc.tl.pca(adata)
+        sc.pp.neighbors(adata)
+        sc.tl.umap(adata)
+    except:
+        pass
 
+    nrows = len(gmm_exclude.keys())+1
     fig, ax = plt.subplots(nrows,2, figsize=(20, 5*nrows))
 
     nrow = 0
@@ -137,9 +171,30 @@ def plot_exclude_figures(
         
         # Plot GMM histogram fit
         plot_gmm_fit_hist(ax[nrow, 1], adata, gmm, f"exclude_mean_expr_{category}")
+
+        target_indices = adata.uns.get(f"exclude_indices_{category}", [])
+        if isinstance(target_indices, (int, np.integer)):
+            target_indices = [target_indices]
+        elif isinstance(target_indices, np.ndarray):
+            target_indices = target_indices.tolist()
+
+        # Update legend to mark target components with *
+        handles, labels = ax[nrow,1].get_legend_handles_labels()
+        new_labels = []
+        for i, label in enumerate(labels):
+            if i == 0:
+                new_labels.append(label)
+                continue
+            if i-1 in target_indices:
+                new_labels.append(f"{label}*")
+            else:
+                new_labels.append(label)
+        
+        ax[nrow,1].legend(handles, new_labels)
+
         nrow += 1
     
-    # Plot UMAP colored by score$
+    # Plot UMAP colored by score
     if 'X_umap' in adata.obsm:
         try:
             min_score = adata.obs["score"].min()
@@ -158,6 +213,7 @@ def plot_exclude_figures(
     # Plot histogram of score
     ax[nrow, 1].hist(adata.obs["score"], bins=100, color='blue', alpha=0.7)
     ax[nrow, 1].set(title="Histogram of Score", xlabel="Score", ylabel="Number of Cells")
+    ax[nrow, 1].set_yscale('log')
     ax[nrow, 1].grid(True)
     fig.tight_layout()
     fig.savefig(plot_path, dpi=300, bbox_inches="tight")

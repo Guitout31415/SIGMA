@@ -165,6 +165,9 @@ def fit_gmm(data: np.ndarray,
     mask = (data != 0) & np.isfinite(data)
     data_train = data[mask]
 
+    if len(data_train) < 2:
+        return None
+
     if n_components == "auto":
         print(f"Automatically determining components for {category}...")
         optimal_n, estimated_means = find_optimal_gmm_components(
@@ -176,6 +179,7 @@ def fit_gmm(data: np.ndarray,
         print(f"Using specified components for {category}: {optimal_n}")
 
     gmm = GaussianMixture(n_components=optimal_n, means_init=estimated_means)
+
     gmm.fit(np.asarray(data_train).reshape(-1, 1))
 
     return gmm
@@ -201,7 +205,7 @@ def ashmann_distance(m1: float, m2: float, s1: float, s2: float) -> float:
     Returns:
         Ashmann distance value (>2 typically indicates good separation)
     """
-    return np.abs(m1 - m2) / np.sqrt(s1**2 + s2**2)
+    return np.abs(m1 - m2) / np.sqrt(1/2*s1**2 + 1/2*s2**2)
 
 
 # =============================================================================
@@ -256,6 +260,10 @@ def identify_target_components(
 
             target_indices.append(i_target_previous)
             means_components[i_target_previous] = -1
+
+            # mean_targ = gmm.means_[i_target_previous][0]
+            # std_targ = np.sqrt(gmm.covariances_[i_target_previous][0][0])
+
             i_target_previous = np.argmax(means_components)
     else:
         print("Excluding specific 'low' genes based on exclude genes...")

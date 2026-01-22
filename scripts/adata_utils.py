@@ -163,6 +163,8 @@ def normalize_and_log(adata: AnnData, target_sum: float = TARGET_SUM, layer: str
     """
     adata = adata.copy()
     adata.layers[layer] = adata.X.copy()
+    if adata.shape[0] == 0:
+        return adata
     sc.pp.normalize_total(adata, target_sum=target_sum)
     sc.pp.log1p(adata)
     adata.layers[f"{layer}_log1p"] = adata.X.copy()
@@ -183,6 +185,7 @@ def preprocess_adata(adata: AnnData, layer: str = None, already_normalized: bool
 
     if already_normalized:
         print("Data appears to be already normalized. Skipping normalization step.")
+        adata.layers[f"{layer}_log1p"] = adata.X.copy()
     else:
         adata = normalize_and_log(adata, layer=layer)
 
@@ -219,6 +222,7 @@ def find_candidate_cells(
         Filtered AnnData containing only cells passing the criteria
     """
     filtered_adata = adata.copy()
+    filtered_adata.X = filtered_adata.layers["raw"].copy()
     available_genes = list(genes.intersection(filtered_adata.var_names))
 
     if not available_genes:
