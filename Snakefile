@@ -23,6 +23,20 @@ STUDIES_NAMES = [".".join(f.split(".")[:-1]) for f in STUDIES_FILES]
 DEFAULT_THREADS = int(config.get("threads", 1))
 DEFAULT_MEM_MB = int(config.get("mem_mb", 32000))
 
+if CONFIG['Options']['do_QC'] == 'True':
+    qc_folder = os.path.join(CONFIG["Folder"]["output_folder"], "qc")
+else:
+    qc_folder = CONFIG["Folder"]["input_folder"]
+    for study in STUDIES_FILES:
+        stdout_log = os.path.join(CONFIG["Folder"]["output_folder"], "logs", "std", f"QC_{study}.stdout")
+        stderr_log = os.path.join(CONFIG["Folder"]["output_folder"], "logs", "std", f"QC_{study}.stderr")
+        os.makedirs(os.path.dirname(stdout_log), exist_ok=True)
+        with open(stdout_log, 'w') as out_f:
+            out_f.write("Quality control is disabled. Using input file directly.")
+        with open(stderr_log, 'w') as err_f:
+            err_f.write("")
+
+
 # ---------------- Rules ----------------
 
 rule all:
@@ -35,7 +49,6 @@ rule merge_studies:
         CONFIG["Folder"]["output_folder"] + "/harmonized"
     output:
         CONFIG["Folder"]["output_folder"] + "/merge.h5ad"
-    threads: DEFAULT_THREADS
     resources:
         mem_mb=DEFAULT_MEM_MB
     shell:
@@ -49,7 +62,6 @@ rule harmonize_metadata:
         )
     output:
         directory(CONFIG["Folder"]["output_folder"] + "/harmonized")
-    threads: DEFAULT_THREADS
     resources:
         mem_mb=DEFAULT_MEM_MB
     params: 
@@ -63,7 +75,7 @@ rule harmonize_metadata:
 
 rule find_target:
     input:
-        os.path.join(CONFIG["Folder"]["output_folder"], "qc/{study}.h5ad")
+        os.path.join(qc_folder, "{study}.h5ad")
     output:
         os.path.join(CONFIG["Folder"]["output_folder"], "find/{study}.h5ad")
     threads: DEFAULT_THREADS
@@ -79,7 +91,9 @@ rule find_target:
         n_components_exclu=CONFIG['Thresholds']['n_components_exclu'],
         min_mean_expression=float(CONFIG['Thresholds']['min_mean_expression']),
         species=CONFIG['Options']['species'],
-        plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots")
+        do_QC=CONFIG['Options']['do_QC'],
+        plot_folder=os.path.join(CONFIG["Folder"]["output_folder"], "plots"),
+        exclude_celltypes=CONFIG['Options']['exclude_celltypes']
     log:
         stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stderr"),
         stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
@@ -96,14 +110,16 @@ rule find_target:
         "--n_components_target {params.n_components_target} "
         "--n_components_exclu {params.n_components_exclu} "
         "--min_mean_expression {params.min_mean_expression} "
+        "--do_QC {params.do_QC} "
         "--species {params.species} "
-        "--plot_folder {params.plot_folder} >> '{log.stdout}' 2>> '{log.stderr}'"
+        "--plot_folder {params.plot_folder} "
+        "--exclude_celltypes {params.exclude_celltypes} >> '{log.stdout}' 2>> '{log.stderr}'"
 
 rule quality_control:
     input:
         os.path.join(CONFIG["Folder"]["input_folder"], "{study}.h5ad")
     output:
-        os.path.join(CONFIG["Folder"]["output_folder"], "qc/{study}.h5ad")
+        os.path.join(qc_folder, "{study}.h5ad")
     threads: DEFAULT_THREADS
     resources:
         mem_mb=DEFAULT_MEM_MB
@@ -117,7 +133,6 @@ rule quality_control:
         stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr"),
         stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout")
     shell:
-        "if [ '{params.do_QC}' == 'True' ]; then "
         "python scripts/quality_control.py "
         "--h5ad_file '{input}' "
         "--output_file '{output}' "
@@ -125,11 +140,7 @@ rule quality_control:
         "--nmads {params.nmads} "
         "--do_QC {params.do_QC} "
         "--species {params.species} "
-        "--threads '{threads}'; "
-        "else "
-        "mkdir -p $(dirname '{output}') && cp '{input}' '{output}'; "
-        "echo 'Quality control is disabled. Loading and saving data...'; "
-        "fi >> '{log.stdout}' 2>> '{log.stderr}'"
+        "--threads '{threads}' >> '{log.stdout}' 2>> '{log.stderr}'"
 
 rule merge_logs:
     input:
@@ -141,3 +152,14 @@ rule merge_logs:
     threads: 1
     shell:
         "cat {input.i1} {input.i2} > {output}"
+
+rule create_qc_std_logs:
+    input:
+        i1=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout"),
+        i2=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
+    output:
+        os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout"),
+        os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/EXTRACT_{study}.stdout")
+    shell:
+        "cat '' > {input.i1} && "
+        "cat '' > {input.i2}"
