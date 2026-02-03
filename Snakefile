@@ -23,18 +23,12 @@ STUDIES_NAMES = [".".join(f.split(".")[:-1]) for f in STUDIES_FILES]
 DEFAULT_THREADS = int(config.get("threads", 1))
 DEFAULT_MEM_MB = int(config.get("mem_mb", 32000))
 
-if CONFIG['Options']['do_QC'] == 'True':
+DO_QC = CONFIG['Options']['do_QC'] == 'True'
+
+if DO_QC:
     qc_folder = os.path.join(CONFIG["Folder"]["output_folder"], "qc")
 else:
     qc_folder = CONFIG["Folder"]["input_folder"]
-    for study in STUDIES_FILES:
-        stdout_log = os.path.join(CONFIG["Folder"]["output_folder"], "logs", "std", f"QC_{study}.stdout")
-        stderr_log = os.path.join(CONFIG["Folder"]["output_folder"], "logs", "std", f"QC_{study}.stderr")
-        os.makedirs(os.path.dirname(stdout_log), exist_ok=True)
-        with open(stdout_log, 'w') as out_f:
-            out_f.write("Quality control is disabled. Using input file directly.")
-        with open(stderr_log, 'w') as err_f:
-            err_f.write("")
 
 
 # ---------------- Rules ----------------
@@ -75,7 +69,10 @@ rule harmonize_metadata:
 
 rule find_target:
     input:
-        os.path.join(qc_folder, "{study}.h5ad")
+        lambda wildcards: (
+            os.path.join(CONFIG["Folder"]["output_folder"], "qc", f"{wildcards.study}.h5ad") if DO_QC
+            else os.path.join(CONFIG["Folder"]["input_folder"], f"{wildcards.study}.h5ad")
+        )
     output:
         os.path.join(CONFIG["Folder"]["output_folder"], "find/{study}.h5ad")
     threads: DEFAULT_THREADS
@@ -115,32 +112,42 @@ rule find_target:
         "--plot_folder {params.plot_folder} "
         "--exclude_celltypes {params.exclude_celltypes} >> '{log.stdout}' 2>> '{log.stderr}'"
 
-rule quality_control:
-    input:
-        os.path.join(CONFIG["Folder"]["input_folder"], "{study}.h5ad")
-    output:
-        os.path.join(qc_folder, "{study}.h5ad")
-    threads: DEFAULT_THREADS
-    resources:
-        mem_mb=DEFAULT_MEM_MB
-    params:
-        percent_top=CONFIG['Options']['percent_top'],
-        nmads=CONFIG['Options']['nmads'],
-        species=CONFIG['Options']['species'],
-        do_QC=CONFIG['Options']['do_QC'],
-        threads=DEFAULT_THREADS
-    log:
-        stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr"),
-        stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout")
-    shell:
-        "python scripts/quality_control.py "
-        "--h5ad_file '{input}' "
-        "--output_file '{output}' "
-        "--percent_top {params.percent_top} "
-        "--nmads {params.nmads} "
-        "--do_QC {params.do_QC} "
-        "--species {params.species} "
-        "--threads '{threads}' >> '{log.stdout}' 2>> '{log.stderr}'"
+if DO_QC:
+    rule quality_control:
+        input:
+            os.path.join(CONFIG["Folder"]["input_folder"], "{study}.h5ad")
+        output:
+            os.path.join(CONFIG["Folder"]["output_folder"], "qc", "{study}.h5ad")
+        threads: DEFAULT_THREADS
+        resources:
+            mem_mb=DEFAULT_MEM_MB
+        params:
+            percent_top=CONFIG['Options']['percent_top'],
+            nmads=CONFIG['Options']['nmads'],
+            species=CONFIG['Options']['species'],
+            do_QC=CONFIG['Options']['do_QC'],
+            threads=DEFAULT_THREADS
+        log:
+            stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr"),
+            stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout")
+        shell:
+            "python scripts/quality_control.py "
+            "--h5ad_file '{input}' "
+            "--output_file '{output}' "
+            "--percent_top {params.percent_top} "
+            "--nmads {params.nmads} "
+            "--do_QC {params.do_QC} "
+            "--species {params.species} "
+            "--threads '{threads}' >> '{log.stdout}' 2>> '{log.stderr}'"
+else:
+    rule quality_control:
+        output:
+            stderr=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stderr"),
+            stdout=os.path.join(CONFIG["Folder"]["output_folder"], "logs/std/QC_{study}.stdout")
+        shell:
+            "mkdir -p $(dirname {output.stdout}) && "
+            "echo 'Quality control is disabled. Using input file directly.' > {output.stdout} && "
+            "touch {output.stderr}"
 
 rule merge_logs:
     input:
