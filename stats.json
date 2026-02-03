@@ -1,0 +1,427 @@
+{
+    "total_runtime": 1062.272220134735,
+    "rules": {
+        "harmonize_metadata": {
+            "mean-runtime": 858.0821142196655,
+            "min-runtime": 858.0821142196655,
+            "max-runtime": 858.0821142196655
+        },
+        "merge_studies": {
+            "mean-runtime": 202.96555018424988,
+            "min-runtime": 202.96555018424988,
+            "max-runtime": 202.96555018424988
+        },
+        "merge_logs": {
+            "mean-runtime": 0.5268310027963975,
+            "min-runtime": 0.10071730613708496,
+            "max-runtime": 0.6185712814331055
+        },
+        "all": {
+            "mean-runtime": 0.0031507015228271484,
+            "min-runtime": 0.0031507015228271484,
+            "max-runtime": 0.0031507015228271484
+        }
+    },
+    "files": {
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/harmonized": {
+            "start-time": "Tue Jan 27 16:00:53 2026",
+            "stop-time": "Tue Jan 27 16:15:11 2026",
+            "duration": 858.0821142196655,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/merge.h5ad": {
+            "start-time": "Tue Jan 27 16:15:11 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 202.96555018424988,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Park_science_science_aay322.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5924510955810547,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/James_natimmuno_10-1038_s41590-020-0602-z.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.6185712814331055,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_TCL_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5884935855865479,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Strati_cell_j-xcrm-2023-101158.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.6104159355163574,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_LLN_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.603269100189209,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Travaglini_nature_s41586-020-2922-4.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.6017017364501953,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_BMA_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5625936985015869,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_JEJEPI_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5634899139404297,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Madissoon_natgenetic_s41588-022-01243-4.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5649905204772949,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Thonglin_front_fgene-2021-745483.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5559165477752686,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_SKM_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5595569610595703,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Stomach_Tabula.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5582001209259033,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_THY_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5580277442932129,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Muscle_Tabula.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5557680130004883,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_JEJLP_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5678775310516357,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Kidney_Tabula.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:34 2026",
+            "duration": 0.5437979698181152,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_MLN_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.543834924697876,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Popescu_nature_10-1038_s41586-019-1652-y.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5414984226226807,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_SPL_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5244543552398682,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Trachea_Tabula.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5287966728210449,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_CAE_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.528339147567749,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_LIV_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5269176959991455,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Lymph_Node_Tabula.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.522946834564209,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Elmentaite_nature_s41586-021-03852-1.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5128874778747559,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_LNG_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.50984787940979,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Bone_Marrow_Tabula.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5110034942626953,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_SCL_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5141210556030273,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/He_cell_j_cell_2022_11_005.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5148377418518066,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Spleen_Tabula.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5456905364990234,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_ILE_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5517487525939941,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_BLD_data.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.57472825050354,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Habermann_sciadv_sciadv-aba1972.log": {
+            "start-time": "Tue Jan 27 16:18:34 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.5244383811950684,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_DUO_data.log": {
+            "start-time": "Tue Jan 27 16:18:35 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.1303234100341797,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy/logs/Dominguez_science_science-abl5197_OME_data.log": {
+            "start-time": "Tue Jan 27 16:18:35 2026",
+            "stop-time": "Tue Jan 27 16:18:35 2026",
+            "duration": 0.10071730613708496,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        }
+    }
+}

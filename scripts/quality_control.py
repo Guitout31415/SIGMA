@@ -15,6 +15,7 @@ import scanpy as sc
 from anndata import AnnData
 import scrublet as scr
 from scipy.stats import median_abs_deviation
+from scipy import sparse
 from joblib import Parallel, delayed
 
 from constants import (
@@ -99,27 +100,96 @@ def calculate_outlier_vector(values: np.ndarray, nmads: int) -> np.ndarray:
 
 def _run_scrublet_on_matrix(
     matrix: np.ndarray,
-    n_obs: int,
-    n_vars: int,
     n_prin_comps: int,
 ) -> tuple:
     """Run Scrublet doublet detection on a count matrix.
 
     Args:
         matrix: Count matrix
-        n_obs: Number of observations
-        n_vars: Number of variables
         n_prin_comps: Number of PCA components
 
     Returns:
         Tuple of (doublet_scores, doublet_mask)
     """
+    if matrix is None:
+        return np.array([], dtype=float), np.array([], dtype=bool)
+
+    n_obs, n_vars = matrix.shape
+    if n_obs == 0:
+        return np.array([], dtype=float), np.array([], dtype=bool)
+
+    # Scrublet (via PCA) cannot run with 0 variables.
+    if n_vars == 0:
+        print("Scrublet skipped: matrix has 0 features (genes).")
+        return np.zeros(n_obs, dtype=float), np.zeros(n_obs, dtype=bool)
+
+    # If the matrix contains no non-zero entries, Scrublet's gene filtering may
+    # drop all genes, leading to PCA errors. Skip in that case.
+    if sparse.issparse(matrix):
+        if matrix.nnz == 0:
+            print("Scrublet skipped: count matrix is all zeros.")
+            return np.zeros(n_obs, dtype=float), np.zeros(n_obs, dtype=bool)
+    else:
+        # Avoid expensive full scans for large dense matrices; only do a quick
+        # summary for reasonably sized inputs.
+        try:
+            if getattr(matrix, "size", 0) and matrix.size <= 50_000_000:
+                if np.nanmax(matrix) == 0:
+                    print("Scrublet skipped: count matrix max is 0.")
+                    return np.zeros(n_obs, dtype=float), np.zeros(n_obs, dtype=bool)
+        except Exception:
+            # If we cannot summarize safely, proceed and let Scrublet decide.
+            pass
+
     local_components = min(
         n_prin_comps,
         max(MIN_PCA_COMPONENTS, min(n_obs - 1, n_vars - 1)),
     )
     scrub = scr.Scrublet(matrix)
-    scores, _ = scrub.scrub_doublets(verbose=False, n_prin_comps=local_components)
+    try:
+        scores, _ = scrub.scrub_doublets(verbose=False, n_prin_comps=local_components)
+    except ValueError as e:
+        msg = str(e)
+        # Common failure mode: Scrublet internal gene filtering drops all genes.
+        # This can happen if the input isn't raw UMI counts or is extremely sparse.
+        if "0 feature" in msg or "0 features" in msg:
+            try:
+                print(
+                    "Scrublet hit 0 features after gene filtering. "
+                    "Retrying with permissive gene filters (min_counts=1, min_cells=1, min_gene_variability_pctl=0)..."
+                )
+                scrub_retry = scr.Scrublet(matrix)
+                scores, _ = scrub_retry.scrub_doublets(
+                    verbose=False,
+                    n_prin_comps=min(local_components, 10),
+                    min_counts=1,
+                    min_cells=1,
+                    min_gene_variability_pctl=0,
+                )
+                scrub = scrub_retry
+            except Exception as e2:
+                print(f"Scrublet skipped: {e} (retry failed: {type(e2).__name__}: {e2})")
+                return np.zeros(n_obs, dtype=float), np.zeros(n_obs, dtype=bool)
+
+        # Another frequent PCA failure mode: n_components too large after internal
+        # filtering. Retry with a conservative number of components.
+        if "n_components" in msg or "between" in msg or "min(n_samples" in msg:
+            try:
+                print(f"Scrublet PCA issue ({e}). Retrying with n_prin_comps=1...")
+                scrub_retry = scr.Scrublet(matrix)
+                scores, _ = scrub_retry.scrub_doublets(verbose=False, n_prin_comps=1)
+                scrub = scrub_retry
+            except Exception as e2:
+                print(
+                    f"Scrublet retry failed ({type(e2).__name__}: {e2}). "
+                    "Skipping doublet detection."
+                )
+                return np.zeros(n_obs, dtype=float), np.zeros(n_obs, dtype=bool)
+        else:
+            raise
+    except Exception as e:
+        print(f"Scrublet failed ({type(e).__name__}: {e}). Skipping doublet detection.")
+        return np.zeros(n_obs, dtype=float), np.zeros(n_obs, dtype=bool)
 
     try:
         mask = scrub.call_doublets()
@@ -143,6 +213,9 @@ def run_scrublet(adata: AnnData, n_jobs: int = 1) -> AnnData:
     Returns:
         AnnData with doublets removed
     """
+    # Prefer raw counts if available (Scrublet expects raw counts)
+    matrix = adata.layers["raw"] if "raw" in adata.layers else adata.X
+
     # Remove cells with zero total counts
     if "total_counts" in adata.obs:
         zero_total = adata.obs["total_counts"].to_numpy() == 0
@@ -152,6 +225,14 @@ def run_scrublet(adata: AnnData, n_jobs: int = 1) -> AnnData:
                 "before doublet detection."
             )
             adata = adata[~zero_total].copy()
+            matrix = adata.layers["raw"] if "raw" in adata.layers else adata.X
+
+    # If no genes, skip immediately
+    if matrix is None or matrix.shape[1] == 0:
+        print("No genes available for Scrublet (0 features). Skipping doublet detection.")
+        adata.obs["doublet_score"] = 0.0
+        adata.obs["doublet_class"] = pd.Categorical(["False"] * adata.n_obs)
+        return adata
 
     # Check if dataset is large enough for PCA
     max_components = min(adata.n_obs - 1, adata.n_vars - 1)
@@ -173,8 +254,9 @@ def run_scrublet(adata: AnnData, n_jobs: int = 1) -> AnnData:
         ]
 
         def process_batch(batch: AnnData) -> tuple:
+            batch_matrix = batch.layers["raw"] if "raw" in batch.layers else batch.X
             return _run_scrublet_on_matrix(
-                batch.X, batch.n_obs, batch.n_vars, n_prin_comps
+                batch_matrix, n_prin_comps
             )
 
         results = Parallel(n_jobs=n_jobs)(
@@ -184,7 +266,7 @@ def run_scrublet(adata: AnnData, n_jobs: int = 1) -> AnnData:
         masks = np.concatenate([r[1] for r in results])
     else:
         scores, masks = _run_scrublet_on_matrix(
-            adata.X, adata.n_obs, adata.n_vars, n_prin_comps
+            matrix, n_prin_comps
         )
 
     adata.obs["doublet_score"] = scores

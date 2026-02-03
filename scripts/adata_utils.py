@@ -59,8 +59,28 @@ def prepare_adata_qc(adata: AnnData, species: str) -> AnnData:
     Returns:
         Prepared AnnData object with renamed genes and 'raw' layer
     """
-    count_matrix = adata.X
-    adata = AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
+    # Scrublet expects raw (unnormalized) UMI counts. Depending on upstream steps,
+    # adata.X might already be normalized/logged; prefer explicit count layers
+    # or adata.raw when available.
+    var_source = adata.var
+    count_matrix = None
+
+    for layer_name in ("counts", "raw_counts", "umi_counts", "count"):
+        if layer_name in adata.layers:
+            count_matrix = adata.layers[layer_name]
+            break
+
+    if count_matrix is None and getattr(adata, "raw", None) is not None:
+        try:
+            count_matrix = adata.raw.X
+            var_source = adata.raw.var
+        except Exception:
+            count_matrix = None
+
+    if count_matrix is None:
+        count_matrix = adata.X
+
+    adata = AnnData(X=count_matrix, obs=adata.obs.copy(), var=var_source.copy())
 
     genes = rename_genes(adata.var_names.to_list(), species)
     adata.var_names = genes
@@ -68,7 +88,9 @@ def prepare_adata_qc(adata: AnnData, species: str) -> AnnData:
     if adata.var_names.has_duplicates:
         adata.var_names_make_unique()
 
-    adata.layers["raw"] = adata.X.copy()
+    # Keep a pointer to the count matrix for downstream steps; this avoids
+    # accidentally running doublet detection on normalized data.
+    adata.layers["raw"] = adata.X
     return adata
 
 
