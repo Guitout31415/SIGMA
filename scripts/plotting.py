@@ -88,12 +88,17 @@ def plot_target_figures(
     
     # Plot GMM histogram fit
     plot_gmm_fit_hist(ax[0,1], adata, gmm_target, "target_mean_expr")
-    # Ensure target_indices is iterable
+    # Ensure target_indices is always a list
     target_indices = adata.uns.get("target_indices", [])
-    if isinstance(target_indices, (int, np.integer)):
-        target_indices = [target_indices]
-    elif isinstance(target_indices, np.ndarray):
-        target_indices = target_indices.tolist()
+    if not isinstance(target_indices, (list, tuple)):
+        if isinstance(target_indices, np.ndarray):
+            target_indices = target_indices.tolist()
+            # np.ndarray scalars become int after tolist(), need to wrap in list
+            if not isinstance(target_indices, (list, tuple)):
+                target_indices = [target_indices]
+        else:
+            # Convert any scalar (int, np.int32, np.int64, etc.) to list
+            target_indices = [int(target_indices)]
 
     # Update legend to mark target components with *
     handles, labels = ax[0,1].get_legend_handles_labels()
@@ -173,10 +178,16 @@ def plot_exclude_figures(
         plot_gmm_fit_hist(ax[nrow, 1], adata, gmm, f"exclude_mean_expr_{category}")
 
         target_indices = adata.uns.get(f"exclude_indices_{category}", [])
-        if isinstance(target_indices, (int, np.integer)):
-            target_indices = [target_indices]
-        elif isinstance(target_indices, np.ndarray):
-            target_indices = target_indices.tolist()
+        # Ensure target_indices is always a list
+        if not isinstance(target_indices, (list, tuple)):
+            if isinstance(target_indices, np.ndarray):
+                target_indices = target_indices.tolist()
+                # np.ndarray scalars become int after tolist(), need to wrap in list
+                if not isinstance(target_indices, (list, tuple)):
+                    target_indices = [target_indices]
+            else:
+                # Convert any scalar (int, np.int32, np.int64, etc.) to list
+                target_indices = [int(target_indices)]
 
         # Update legend to mark target components with *
         handles, labels = ax[nrow,1].get_legend_handles_labels()

@@ -101,7 +101,9 @@ def find_optimal_gmm_components(
             n_components: Estimated number of GMM components
             initial_means: Optional initial mean estimates for GMM initialization
     """
-
+    # remove zeros and non-finite values before KDE
+    data = np.asarray(data).flatten()
+    data = data[(data != 0)]
     if len(data) < 2 or np.var(data) == 0:
         return 1, None
 
@@ -162,7 +164,7 @@ def fit_gmm(data: np.ndarray,
         Fitted GaussianMixture model.    
     """
     # Filter data for fitting only (training data)
-    mask = (data != 0) & np.isfinite(data)
+    mask = np.isfinite(data)
     data_train = data[mask]
 
     if len(data_train) < 2:
@@ -179,7 +181,9 @@ def fit_gmm(data: np.ndarray,
         print(f"Using specified components for {category}: {optimal_n}")
 
     gmm = GaussianMixture(n_components=optimal_n, means_init=estimated_means)
-
+    if exclude_celltypes == "True":
+        mask = data_train > 0
+        data_train = data_train[mask]
     gmm.fit(np.asarray(data_train).reshape(-1, 1))
 
     return gmm
@@ -205,7 +209,7 @@ def ashmann_distance(m1: float, m2: float, s1: float, s2: float) -> float:
     Returns:
         Ashmann distance value (>2 typically indicates good separation)
     """
-    return np.abs(m1 - m2) / np.sqrt(1/2*s1**2 + 1/2*s2**2)
+    return np.abs(m1 - m2) / np.sqrt(s1**2 + s2**2)
 
 
 # =============================================================================

@@ -261,17 +261,10 @@ def step2_find_candidates(
 
 def step3_fit_gmm_target(candidate_cells: sc.AnnData,
                          target_genes_avail: set,
-                         exclude_genes_avail: dict,
                          n_components_target: str) -> tuple:
     
     # already_normalized = check_if_normalized(candidate_cells)
     sub_candidate = candidate_cells.copy()
-    # # Remove exclude genes from raw data
-    # genes_remove = [str(g) for genes in exclude_genes_avail.values() for g in genes if g not in target_genes_avail]
-    # sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)] # Remove exclude genes from raw data
-    # # sub_candidate.layers["raw_target"] = sub_candidate.X.copy()
-    # sub_candidate = preprocess_adata(sub_candidate, layer="raw_target", already_normalized=already_normalized)
-    # sub_candidate.X = sub_candidate.layers["raw_target_log1p"].copy()
 
     # Compute mean expression of target genes
     target_df = sub_candidate[:, list(target_genes_avail)].to_df()
@@ -283,7 +276,6 @@ def step3_fit_gmm_target(candidate_cells: sc.AnnData,
     return gmm_target, candidate_cells
 
 def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
-                            target_genes_avail: set,
                             exclude_genes_avail: dict,
                             n_components_exclu: str,
                             exclude_celltypes: str) -> tuple:
@@ -299,13 +291,6 @@ def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
     # already_normalized = check_if_normalized(candidate_cells)
     for category, genes in exclude_genes_avail.items():
         sub_candidate = candidate_cells.copy()
-        
-        # Remove target genes from raw data
-        # genes_remove = [str(g) for g in target_genes_avail if g not in genes]
-        # sub_candidate = sub_candidate[:, ~sub_candidate.var_names.isin(genes_remove)]
-        # # sub_candidate.layers[f"raw_{category}"] = sub_candidate.X.copy()
-        # sub_candidate = preprocess_adata(sub_candidate, layer=f"raw_{category}", already_normalized=already_normalized)
-        # sub_candidate.X = sub_candidate.layers[f"raw_{category}_log1p"]
         
         # Compute mean expression of exclude genes
         exclude_df = sub_candidate[:, list(genes)].to_df()
@@ -333,7 +318,15 @@ def step4_calculate_target_probabilities(candidate_cells: sc.AnnData,
     # Predict probabilities
     probas = gmm_target.predict_proba(candidate_cells.obs["target_mean_expr"].values.reshape(-1, 1))
 
-    candidate_cells.obs["proba_target"] = np.sum(probas[:, target_indices], axis=1)
+    # Handle single index case: ensure we always have a 2D array for summation
+    if isinstance(target_indices, (int, np.integer)):
+        candidate_cells.obs["proba_target"] = probas[:, target_indices]
+    else:
+        target_indices = np.atleast_1d(target_indices)
+        if len(target_indices) == 1:
+            candidate_cells.obs["proba_target"] = probas[:, target_indices[0]]
+        else:
+            candidate_cells.obs["proba_target"] = np.sum(probas[:, target_indices], axis=1)
     
     # Save target_indices to candidate_cells.uns for plottings
     candidate_cells.uns["target_indices"] = target_indices
@@ -364,7 +357,15 @@ def step4bis_calculate_exclude_probabilities(candidate_cells: sc.AnnData,
                 candidate_cells.obs[f"proba_{category}"] = np.zeros(candidate_cells.shape[0])
                 return candidate_cells
 
-            candidate_cells.obs[f"proba_{category}"] = np.sum(probas[:, exclude_indices], axis=1)
+            # Handle single index case: ensure we always have a 2D array for summation
+            if isinstance(exclude_indices, (int, np.integer)):
+                candidate_cells.obs[f"proba_{category}"] = probas[:, exclude_indices]
+            else:
+                exclude_indices = np.atleast_1d(exclude_indices)
+                if len(exclude_indices) == 1:
+                    candidate_cells.obs[f"proba_{category}"] = probas[:, exclude_indices[0]]
+                else:
+                    candidate_cells.obs[f"proba_{category}"] = np.sum(probas[:, exclude_indices], axis=1)
 
             if exclude_celltypes == "False":
                 candidate_cells.obs[f"proba_{category}"] = 1-candidate_cells.obs[f"proba_{category}"]
@@ -460,7 +461,7 @@ def find_target_cells(
 
     # Step 3: Fit GMM for target genes
     gmm_target, candidate_cells = step3_fit_gmm_target(
-        candidate_cells, target_genes_avail, exclude_genes_avail, n_components_target
+        candidate_cells, target_genes_avail, n_components_target
     )
 
     if gmm_target == None:
@@ -471,7 +472,7 @@ def find_target_cells(
 
     # Step 3bis: Fit GMM for exclusion genes
     gmm_exclude, candidate_cells = step3bis_fit_gmm_exclude(
-        candidate_cells, target_genes_avail, exclude_genes_avail, n_components_exclu, exclude_celltypes
+        candidate_cells, exclude_genes_avail, n_components_exclu, exclude_celltypes
     )
     
     # Step 4: Calculate target probabilities
