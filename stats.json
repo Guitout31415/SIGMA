@@ -1,0 +1,845 @@
+{
+    "total_runtime": 1951.0729014873505,
+    "rules": {
+        "find_target": {
+            "mean-runtime": 242.6226444384631,
+            "min-runtime": 101.4863007068634,
+            "max-runtime": 1198.0276544094086
+        },
+        "quality_control": {
+            "mean-runtime": 0.056270234725054574,
+            "min-runtime": 0.04650378227233887,
+            "max-runtime": 0.10847115516662598
+        },
+        "harmonize_metadata": {
+            "mean-runtime": 433.5706555843353,
+            "min-runtime": 433.5706555843353,
+            "max-runtime": 433.5706555843353
+        },
+        "merge_studies": {
+            "mean-runtime": 318.60249042510986,
+            "min-runtime": 318.60249042510986,
+            "max-runtime": 318.60249042510986
+        },
+        "merge_logs": {
+            "mean-runtime": 0.16124310212976792,
+            "min-runtime": 0.09989666938781738,
+            "max-runtime": 0.24041247367858887
+        },
+        "all": {
+            "mean-runtime": 0.002274751663208008,
+            "min-runtime": 0.002274751663208008,
+            "max-runtime": 0.002274751663208008
+        }
+    },
+    "files": {
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_BLD_data.h5ad": {
+            "start-time": "Mon Feb 23 14:43:40 2026",
+            "stop-time": "Mon Feb 23 14:46:32 2026",
+            "duration": 172.1850323677063,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_JEJEPI_data.h5ad": {
+            "start-time": "Mon Feb 23 14:43:40 2026",
+            "stop-time": "Mon Feb 23 15:03:38 2026",
+            "duration": 1198.0276544094086,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_BMA_data.h5ad": {
+            "start-time": "Mon Feb 23 14:43:40 2026",
+            "stop-time": "Mon Feb 23 14:51:05 2026",
+            "duration": 444.6537137031555,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_LNG_data.h5ad": {
+            "start-time": "Mon Feb 23 14:43:40 2026",
+            "stop-time": "Mon Feb 23 14:46:06 2026",
+            "duration": 145.91958808898926,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_LLN_data.h5ad": {
+            "start-time": "Mon Feb 23 14:43:40 2026",
+            "stop-time": "Mon Feb 23 14:48:11 2026",
+            "duration": 270.6463623046875,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_SPL_data.h5ad": {
+            "start-time": "Mon Feb 23 14:43:40 2026",
+            "stop-time": "Mon Feb 23 14:51:11 2026",
+            "duration": 450.8464825153351,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_JEJLP_data.h5ad": {
+            "start-time": "Mon Feb 23 14:46:06 2026",
+            "stop-time": "Mon Feb 23 14:51:49 2026",
+            "duration": 342.6993217468262,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_MLN_data.h5ad": {
+            "start-time": "Mon Feb 23 14:46:32 2026",
+            "stop-time": "Mon Feb 23 14:48:46 2026",
+            "duration": 134.05461764335632,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_LIV_data.h5ad": {
+            "start-time": "Mon Feb 23 14:48:11 2026",
+            "stop-time": "Mon Feb 23 14:50:22 2026",
+            "duration": 131.32218670845032,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_SKM_data.h5ad": {
+            "start-time": "Mon Feb 23 14:48:46 2026",
+            "stop-time": "Mon Feb 23 14:50:32 2026",
+            "duration": 105.80766868591309,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_ILE_data.h5ad": {
+            "start-time": "Mon Feb 23 14:50:22 2026",
+            "stop-time": "Mon Feb 23 14:52:10 2026",
+            "duration": 107.91598987579346,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_OME_data.h5ad": {
+            "start-time": "Mon Feb 23 14:50:32 2026",
+            "stop-time": "Mon Feb 23 14:52:18 2026",
+            "duration": 105.29641532897949,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_DUO_data.h5ad": {
+            "start-time": "Mon Feb 23 14:51:05 2026",
+            "stop-time": "Mon Feb 23 14:52:48 2026",
+            "duration": 103.40868830680847,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_CAE_data.h5ad": {
+            "start-time": "Mon Feb 23 14:51:11 2026",
+            "stop-time": "Mon Feb 23 14:52:56 2026",
+            "duration": 104.528639793396,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_THY_data.h5ad": {
+            "start-time": "Mon Feb 23 14:51:49 2026",
+            "stop-time": "Mon Feb 23 14:53:31 2026",
+            "duration": 102.25164365768433,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_TCL_data.h5ad": {
+            "start-time": "Mon Feb 23 14:52:10 2026",
+            "stop-time": "Mon Feb 23 14:53:52 2026",
+            "duration": 101.4863007068634,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_SCL_data.h5ad": {
+            "start-time": "Mon Feb 23 14:52:18 2026",
+            "stop-time": "Mon Feb 23 14:54:01 2026",
+            "duration": 103.53464961051941,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_MLN_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:48 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.10847115516662598,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_MLN_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:48 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.10847115516662598,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_LNG_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.06050586700439453,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_LNG_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.06050586700439453,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_CAE_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.049139976501464844,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_CAE_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.049139976501464844,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_SKM_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.07250738143920898,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_SKM_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.07250738143920898,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_LLN_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.04694485664367676,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_LLN_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.04694485664367676,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_OME_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.048085689544677734,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_OME_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.048085689544677734,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_LIV_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.04650378227233887,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_LIV_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.04650378227233887,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_BLD_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.053132057189941406,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_BLD_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.053132057189941406,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_ILE_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.051351308822631836,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_ILE_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.051351308822631836,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_SCL_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05233645439147949,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_SCL_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05233645439147949,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_TCL_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05027580261230469,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_TCL_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05027580261230469,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_SPL_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05416393280029297,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_SPL_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05416393280029297,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_THY_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05241537094116211,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_THY_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05241537094116211,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_JEJEPI_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.0497279167175293,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_JEJEPI_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.0497279167175293,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_JEJLP_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05355978012084961,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_JEJLP_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05355978012084961,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_DUO_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.055538177490234375,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_DUO_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.055538177490234375,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_BMA_data.stderr": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05193448066711426,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/std/QC_Dominguez_science_science-abl5197_BMA_data.stdout": {
+            "start-time": "Mon Feb 23 14:52:49 2026",
+            "stop-time": "Mon Feb 23 14:52:49 2026",
+            "duration": 0.05193448066711426,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/harmonized": {
+            "start-time": "Mon Feb 23 15:03:38 2026",
+            "stop-time": "Mon Feb 23 15:10:52 2026",
+            "duration": 433.5706555843353,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/merge.h5ad": {
+            "start-time": "Mon Feb 23 15:10:52 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 318.60249042510986,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SPL_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.18328380584716797,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_JEJEPI_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.09989666938781738,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_JEJLP_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.10198974609375,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_BMA_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.1533811092376709,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_MLN_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.1566610336303711,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LIV_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.1567363739013672,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LLN_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.20656728744506836,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LNG_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.17229104042053223,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SKM_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.14327239990234375,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_DUO_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.11046433448791504,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_BLD_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.20955944061279297,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_ILE_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.24041247367858887,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SCL_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.15222549438476562,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_CAE_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.15380048751831055,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_TCL_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.177520751953125,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_THY_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.16361260414123535,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_OME_data.log": {
+            "start-time": "Mon Feb 23 15:16:11 2026",
+            "stop-time": "Mon Feb 23 15:16:11 2026",
+            "duration": 0.15945768356323242,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        }
+    }
+}
