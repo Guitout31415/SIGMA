@@ -19,7 +19,6 @@ from scipy import sparse
 from joblib import Parallel, delayed
 
 from constants import (
-    DEFAULT_DOUBLET_THRESHOLD,
     MIN_PCA_COMPONENTS,
     MAX_PCA_COMPONENTS,
     BATCH_SIZE_THRESHOLD,
@@ -197,8 +196,9 @@ def _run_scrublet_on_matrix(
         if threshold_info is not None:
             print(f"Automatically identified doublet score threshold: {threshold_info}")
     except Exception:
-        mask = scrub.call_doublets(threshold=DEFAULT_DOUBLET_THRESHOLD)
-        print(f"Using manual doublet score threshold: {DEFAULT_DOUBLET_THRESHOLD}")
+        print("Scrublet call_doublets failed. Compute a default threshold.")
+        threshold = np.percentile(scores, 95)
+        mask = scores > threshold
 
     return scores, mask
 

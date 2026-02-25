@@ -36,9 +36,6 @@ TARGET_SUM = 1e6
 # Quality Control Constants
 # =============================================================================
 
-DEFAULT_DOUBLET_THRESHOLD = 0.25
-"""Default threshold for Scrublet doublet detection."""
-
 MIN_PCA_COMPONENTS = 1
 """Minimum number of PCA components for doublet detection."""
 
