@@ -40,13 +40,15 @@ rule all:
 
 rule merge_studies:
     input:
-        CONFIG["Folder"]["output_folder"] + "/harmonized"
+        CONFIG["Folder"]["output_folder"] + "/harmonized/.done"
     output:
         CONFIG["Folder"]["output_folder"] + "/merge.h5ad"
     resources:
         mem_mb=DEFAULT_MEM_MB
+    params:
+        harmonized_folder=CONFIG["Folder"]["output_folder"] + "/harmonized"
     shell:
-        "python scripts/merge_h5ad.py --study_folder '{input[0]}' --output_file '{output}'"
+        "python scripts/merge_h5ad.py --study_folder '{params.harmonized_folder}' --output_file '{output}'"
 
 rule harmonize_metadata:
     input:
@@ -55,17 +57,19 @@ rule harmonize_metadata:
             study=STUDIES_NAMES
         )
     output:
-        directory(CONFIG["Folder"]["output_folder"] + "/harmonized")
+        CONFIG["Folder"]["output_folder"] + "/harmonized/.done"
     resources:
         mem_mb=DEFAULT_MEM_MB
-    params: 
+    params:
         input_folder=CONFIG["Folder"]["output_folder"] + "/find",
-        columns_list=','.join(CONFIG["Metadata"])
+        columns_list=','.join(CONFIG["Metadata"]),
+        outdir=CONFIG["Folder"]["output_folder"] + "/harmonized"
     shell:
         "streamlit run scripts/harmonize_metada.py -- "
         "--input_folder {params.input_folder} "
         "--columns_list {params.columns_list} "
-        "--outdir {output}"
+        "--outdir {params.outdir} && "
+        "touch {output}"
 
 rule find_target:
     input:

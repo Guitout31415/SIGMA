@@ -184,6 +184,14 @@ def fit_gmm(data: np.ndarray,
     if exclude_celltypes == "True":
         mask = data_train > 0
         data_train = data_train[mask]
+
+    if len(data_train) < 2:
+        print(
+            f"Not enough non-zero samples to fit GMM for {category} "
+            f"after filtering (n={len(data_train)})."
+        )
+        return None
+
     gmm.fit(np.asarray(data_train).reshape(-1, 1))
 
     return gmm

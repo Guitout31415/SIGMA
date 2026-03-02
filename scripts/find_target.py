@@ -283,7 +283,7 @@ def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
     
     if not exclude_genes_avail:
         print("\n--- 3bis. No Exclude genes provided, skipping GMM fitting for Exclude genes ---")
-        return gmm_exclude, None
+        return gmm_excludes, candidate_cells
 
     print("\n--- 3bis. Fitting GMM for Exclude genes ---")
     # step_start = time.time()
@@ -300,7 +300,7 @@ def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
         gmm_exclude = fit_gmm(candidate_cells.obs[f"exclude_mean_expr_{category}"], n_components_exclu, category, exclude_celltypes)
 
         # Store results
-        if gmm_exclude != None:
+        if gmm_exclude is not None:
             gmm_excludes[category] = gmm_exclude
     
     return gmm_excludes, candidate_cells

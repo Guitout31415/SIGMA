@@ -349,14 +349,35 @@ def main() -> None:
     uploaded_files = get_uploaded_files(args.input_folder)
 
     if uploaded_files:
+        # Filter out files already present in the output directory
+        if outdir and os.path.isdir(outdir):
+            existing_outputs = set(os.listdir(outdir))
+            already_done = [
+                f for f in uploaded_files
+                if os.path.basename(f.name) in existing_outputs
+            ]
+            uploaded_files = [
+                f for f in uploaded_files
+                if os.path.basename(f.name) not in existing_outputs
+            ]
+            if already_done:
+                st.info(
+                    f"{len(already_done)} file(s) already in output "
+                    f"directory, skipped: "
+                    f"{', '.join(os.path.basename(f.name) for f in already_done)}"
+                )
+
         # Initialize session state
         if "active_tab_idx" not in st.session_state:
             st.session_state.active_tab_idx = 0
         if "exported_files" not in st.session_state:
             st.session_state.exported_files = set()
 
-        active = render_navigation(uploaded_files)
-        harmonize_interface(uploaded_files[active], columns_list, active, outdir)
+        if uploaded_files:
+            active = render_navigation(uploaded_files)
+            harmonize_interface(uploaded_files[active], columns_list, active, outdir)
+        else:
+            st.success("All files have already been harmonized.")
     else:
         st.info("Please load one or more .h5ad files to start.")
 
