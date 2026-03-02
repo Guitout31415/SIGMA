@@ -1,6 +1,6 @@
 # SIGMA : Single-cell Identifier using Gaussian Mixture Approach
 
-SIGMA is a bioinformatics pipeline for automated extraction of targeted cell types from multiple heterogeneous single-cell transcriptomic datasets (formats supported: `.h5ad`). It is designed to simplify and accelerate integrative large-scale single-cell analyses.
+SIGMA is a bioinformatics pipeline for automated identification of targeted cell types from multiple heterogeneous single-cell transcriptomic datasets (formats supported: `.h5ad`). It is designed to simplify and accelerate integrative large-scale single-cell analyses.
 
 ## Features
 
@@ -39,8 +39,9 @@ Run the pipeline with Snakemake:
 
 ```bash
 snakemake \
-  --config file=config_mk.conf threads=1 mem_mb=20000 \
+  --config file=ConfigFile.conf \
   --cores 10 \
+  --jobs 5 \
   --resources mem_mb=200000
 ```
 
