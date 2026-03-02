@@ -1,42 +1,37 @@
 {
-    "total_runtime": 1522.6522164344788,
+    "total_runtime": 2203.0419549942017,
     "rules": {
         "find_target": {
-            "mean-runtime": 372.49222985903424,
-            "min-runtime": 205.58642148971558,
-            "max-runtime": 1104.9238822460175
-        },
-        "quality_control": {
-            "mean-runtime": 0.05966933568318685,
-            "min-runtime": 0.04468417167663574,
-            "max-runtime": 0.07505273818969727
+            "mean-runtime": 112.00621461868286,
+            "min-runtime": 112.00621461868286,
+            "max-runtime": 112.00621461868286
         },
         "harmonize_metadata": {
-            "mean-runtime": 367.0346369743347,
-            "min-runtime": 367.0346369743347,
-            "max-runtime": 367.0346369743347
+            "mean-runtime": 1765.942830324173,
+            "min-runtime": 1765.942830324173,
+            "max-runtime": 1765.942830324173
         },
         "merge_studies": {
-            "mean-runtime": 50.309717416763306,
-            "min-runtime": 50.309717416763306,
-            "max-runtime": 50.309717416763306
+            "mean-runtime": 324.47433972358704,
+            "min-runtime": 324.47433972358704,
+            "max-runtime": 324.47433972358704
         },
         "merge_logs": {
-            "mean-runtime": 0.13479109605153403,
-            "min-runtime": 0.09775519371032715,
-            "max-runtime": 0.17347359657287598
+            "mean-runtime": 0.13207679636338177,
+            "min-runtime": 0.07831263542175293,
+            "max-runtime": 0.20108461380004883
         },
         "all": {
-            "mean-runtime": 0.0015625953674316406,
-            "min-runtime": 0.0015625953674316406,
-            "max-runtime": 0.0015625953674316406
+            "mean-runtime": 0.0018527507781982422,
+            "min-runtime": 0.0018527507781982422,
+            "max-runtime": 0.0018527507781982422
         }
     },
     "files": {
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_late_recovery.h5ad": {
-            "start-time": "Sun Mar  1 21:53:55 2026",
-            "stop-time": "Sun Mar  1 21:57:25 2026",
-            "duration": 209.53487491607666,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_SKM_data.h5ad": {
+            "start-time": "Sun Mar  1 23:03:31 2026",
+            "stop-time": "Sun Mar  1 23:05:23 2026",
+            "duration": 112.00621461868286,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -46,10 +41,10 @@
                 "mem_mib": 30518
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_early_recovery.h5ad": {
-            "start-time": "Sun Mar  1 21:53:55 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 205.61460065841675,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/harmonized/.done": {
+            "start-time": "Sun Mar  1 23:05:23 2026",
+            "stop-time": "Sun Mar  1 23:34:49 2026",
+            "duration": 1765.942830324173,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -59,10 +54,10 @@
                 "mem_mib": 30518
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_healthy.h5ad": {
-            "start-time": "Sun Mar  1 21:53:55 2026",
-            "stop-time": "Sun Mar  1 21:58:51 2026",
-            "duration": 295.3952353000641,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/merge.h5ad": {
+            "start-time": "Sun Mar  1 23:34:49 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 324.47433972358704,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -72,49 +67,10 @@
                 "mem_mib": 30518
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_treatment.h5ad": {
-            "start-time": "Sun Mar  1 21:53:55 2026",
-            "stop-time": "Sun Mar  1 21:57:29 2026",
-            "duration": 213.8983645439148,
-            "priority": 0,
-            "resources": {
-                "_cores": 1,
-                "_nodes": 1,
-                "tmpdir": "/tmp",
-                "mem_mb": 32000,
-                "mem_mib": 30518
-            }
-        },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_covid.h5ad": {
-            "start-time": "Sun Mar  1 21:53:55 2026",
-            "stop-time": "Sun Mar  1 22:12:20 2026",
-            "duration": 1104.9238822460175,
-            "priority": 0,
-            "resources": {
-                "_cores": 1,
-                "_nodes": 1,
-                "tmpdir": "/tmp",
-                "mem_mb": 32000,
-                "mem_mib": 30518
-            }
-        },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_influenza.h5ad": {
-            "start-time": "Sun Mar  1 21:53:56 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 205.58642148971558,
-            "priority": 0,
-            "resources": {
-                "_cores": 1,
-                "_nodes": 1,
-                "tmpdir": "/tmp",
-                "mem_mb": 32000,
-                "mem_mib": 30518
-            }
-        },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_early_recovery.stderr": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.07505273818969727,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SPL_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.16972637176513672,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -122,10 +78,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_early_recovery.stdout": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.07505273818969727,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_JEJEPI_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.10997867584228516,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -133,10 +89,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_healthy.stderr": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.05521583557128906,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_JEJLP_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.07831263542175293,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -144,10 +100,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_healthy.stdout": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.05521583557128906,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_BMA_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.10842347145080566,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -155,10 +111,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_treatment.stderr": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.0671989917755127,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_MLN_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.11163592338562012,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -166,10 +122,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_treatment.stdout": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.0671989917755127,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LIV_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.1114504337310791,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -177,10 +133,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_influenza.stderr": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.059561729431152344,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LLN_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.1256401538848877,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -188,10 +144,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_influenza.stdout": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.059561729431152344,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LNG_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.1259608268737793,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -199,10 +155,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_late_recovery.stderr": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.056302547454833984,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SKM_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.10388755798339844,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -210,10 +166,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_late_recovery.stdout": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.056302547454833984,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_DUO_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.10884928703308105,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -221,10 +177,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_covid.stderr": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.04468417167663574,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_BLD_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.1114354133605957,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -232,10 +188,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_covid.stdout": {
-            "start-time": "Sun Mar  1 21:57:21 2026",
-            "stop-time": "Sun Mar  1 21:57:21 2026",
-            "duration": 0.04468417167663574,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_ILE_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.11363363265991211,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -243,36 +199,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/harmonized/.done": {
-            "start-time": "Sun Mar  1 22:12:20 2026",
-            "stop-time": "Sun Mar  1 22:18:27 2026",
-            "duration": 367.0346369743347,
-            "priority": 0,
-            "resources": {
-                "_cores": 1,
-                "_nodes": 1,
-                "tmpdir": "/tmp",
-                "mem_mb": 32000,
-                "mem_mib": 30518
-            }
-        },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/merge.h5ad": {
-            "start-time": "Sun Mar  1 22:18:27 2026",
-            "stop-time": "Sun Mar  1 22:19:18 2026",
-            "duration": 50.309717416763306,
-            "priority": 0,
-            "resources": {
-                "_cores": 1,
-                "_nodes": 1,
-                "tmpdir": "/tmp",
-                "mem_mb": 32000,
-                "mem_mib": 30518
-            }
-        },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_covid.log": {
-            "start-time": "Sun Mar  1 22:19:18 2026",
-            "stop-time": "Sun Mar  1 22:19:18 2026",
-            "duration": 0.17347359657287598,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SCL_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.19439911842346191,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -280,10 +210,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_influenza.log": {
-            "start-time": "Sun Mar  1 22:19:18 2026",
-            "stop-time": "Sun Mar  1 22:19:18 2026",
-            "duration": 0.13638615608215332,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_TCL_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.20108461380004883,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -291,10 +221,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_late_recovery.log": {
-            "start-time": "Sun Mar  1 22:19:18 2026",
-            "stop-time": "Sun Mar  1 22:19:18 2026",
-            "duration": 0.09775519371032715,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_OME_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.16158342361450195,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -302,10 +232,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_early_recovery.log": {
-            "start-time": "Sun Mar  1 22:19:18 2026",
-            "stop-time": "Sun Mar  1 22:19:18 2026",
-            "duration": 0.13424348831176758,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_CAE_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.13101816177368164,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -313,21 +243,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_healthy.log": {
-            "start-time": "Sun Mar  1 22:19:18 2026",
-            "stop-time": "Sun Mar  1 22:19:18 2026",
-            "duration": 0.13740277290344238,
-            "priority": 0,
-            "resources": {
-                "_cores": 1,
-                "_nodes": 1,
-                "tmpdir": "/tmp"
-            }
-        },
-        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_treatment.log": {
-            "start-time": "Sun Mar  1 22:19:18 2026",
-            "stop-time": "Sun Mar  1 22:19:18 2026",
-            "duration": 0.1294853687286377,
+        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_THY_data.log": {
+            "start-time": "Sun Mar  1 23:40:14 2026",
+            "stop-time": "Sun Mar  1 23:40:14 2026",
+            "duration": 0.17828583717346191,
             "priority": 0,
             "resources": {
                 "_cores": 1,
