@@ -103,7 +103,8 @@ def get_probability_columns(obs: pd.DataFrame) -> tuple:
         Tuple of (proba_cols, mean_cols)
     """
     proba_cols = [col for col in obs.columns if col.startswith("proba_")]
-    mean_cols = [col for col in obs.columns if col.endswith("_mean_expr")]
+    mean_cols = [col for col in obs.columns if col.startswith("exclude_mean_expr")] + ["target_mean_expr"]
+
     return proba_cols, mean_cols
 
 

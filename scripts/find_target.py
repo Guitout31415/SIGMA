@@ -317,10 +317,12 @@ def step4_calculate_target_probabilities(candidate_cells: sc.AnnData,
     
     # Predict probabilities
     probas = gmm_target.predict_proba(candidate_cells.obs["target_mean_expr"].values.reshape(-1, 1))
+    # Set probability to 0 for cells with zero target mean expression
+    probas = probas * (candidate_cells.obs["target_mean_expr"].values.reshape(-1, 1) > 0)
 
     # Handle single index case: ensure we always have a 2D array for summation
     if isinstance(target_indices, (int, np.integer)):
-        candidate_cells.obs["proba_target"] = probas[:, target_indices]
+        candidate_cells.obs["proba_target"] = probas[:, target_indices]        
     else:
         target_indices = np.atleast_1d(target_indices)
         if len(target_indices) == 1:
@@ -349,6 +351,7 @@ def step4bis_calculate_exclude_probabilities(candidate_cells: sc.AnnData,
         else:
             # Predict probabilities
             probas = gmm_excl.predict_proba(candidate_cells.obs[f"exclude_mean_expr_{category}"].values.reshape(-1, 1))
+            probas = probas * (candidate_cells.obs[f"exclude_mean_expr_{category}"].values.reshape(-1, 1) > 0)
 
             candidate_cells.uns[f"exclude_indices_{category}"] = exclude_indices
 
