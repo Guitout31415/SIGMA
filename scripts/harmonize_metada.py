@@ -350,29 +350,43 @@ def main() -> None:
     uploaded_files = get_uploaded_files(args.input_folder)
 
     if uploaded_files:
-        # Filter out files already present in the output directory
-        if outdir and os.path.isdir(outdir):
-            existing_outputs = set(os.listdir(outdir))
-            already_done = [
-                f for f in uploaded_files
-                if os.path.basename(f.name) in existing_outputs
-            ]
-            uploaded_files = [
-                f for f in uploaded_files
-                if os.path.basename(f.name) not in existing_outputs
-            ]
-            if already_done:
-                st.info(
-                    f"{len(already_done)} file(s) already in output "
-                    f"directory, skipped: "
-                    f"{', '.join(os.path.basename(f.name) for f in already_done)}"
-                )
-
         # Initialize session state
         if "active_tab_idx" not in st.session_state:
             st.session_state.active_tab_idx = 0
         if "exported_files" not in st.session_state:
             st.session_state.exported_files = set()
+
+        # Filter out files already present in output directory (once at startup)
+        if "initial_filter_done" not in st.session_state:
+            st.session_state.initial_filter_done = True
+            if outdir and os.path.isdir(outdir):
+                existing_outputs = set(os.listdir(outdir))
+                already_done = [
+                    f for f in uploaded_files
+                    if os.path.basename(f.name) in existing_outputs
+                ]
+                uploaded_files = [
+                    f for f in uploaded_files
+                    if os.path.basename(f.name) not in existing_outputs
+                ]
+                st.session_state.skipped_files = {
+                    os.path.basename(f.name) for f in already_done
+                }
+                if already_done:
+                    st.info(
+                        f"{len(already_done)} file(s) already in output "
+                        f"directory, skipped: "
+                        f"{', '.join(os.path.basename(f.name) for f in already_done)}"
+                    )
+            else:
+                st.session_state.skipped_files = set()
+        else:
+            skipped = st.session_state.skipped_files
+            if skipped:
+                uploaded_files = [
+                    f for f in uploaded_files
+                    if os.path.basename(f.name) not in skipped
+                ]
 
         if uploaded_files:
             active = render_navigation(uploaded_files)

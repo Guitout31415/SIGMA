@@ -1,32 +1,42 @@
 {
-    "total_runtime": 50.40701603889465,
+    "total_runtime": 1522.6522164344788,
     "rules": {
+        "find_target": {
+            "mean-runtime": 372.49222985903424,
+            "min-runtime": 205.58642148971558,
+            "max-runtime": 1104.9238822460175
+        },
+        "quality_control": {
+            "mean-runtime": 0.05966933568318685,
+            "min-runtime": 0.04468417167663574,
+            "max-runtime": 0.07505273818969727
+        },
         "harmonize_metadata": {
-            "mean-runtime": 36.01975440979004,
-            "min-runtime": 36.01975440979004,
-            "max-runtime": 36.01975440979004
+            "mean-runtime": 367.0346369743347,
+            "min-runtime": 367.0346369743347,
+            "max-runtime": 367.0346369743347
         },
         "merge_studies": {
-            "mean-runtime": 14.240523338317871,
-            "min-runtime": 14.240523338317871,
-            "max-runtime": 14.240523338317871
+            "mean-runtime": 50.309717416763306,
+            "min-runtime": 50.309717416763306,
+            "max-runtime": 50.309717416763306
         },
         "merge_logs": {
-            "mean-runtime": 0.12668609619140625,
-            "min-runtime": 0.12668609619140625,
-            "max-runtime": 0.12668609619140625
+            "mean-runtime": 0.13479109605153403,
+            "min-runtime": 0.09775519371032715,
+            "max-runtime": 0.17347359657287598
         },
         "all": {
-            "mean-runtime": 0.0013213157653808594,
-            "min-runtime": 0.0013213157653808594,
-            "max-runtime": 0.0013213157653808594
+            "mean-runtime": 0.0015625953674316406,
+            "min-runtime": 0.0015625953674316406,
+            "max-runtime": 0.0015625953674316406
         }
     },
     "files": {
-        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy_subtype/harmonized": {
-            "start-time": "Thu Feb 26 16:10:53 2026",
-            "stop-time": "Thu Feb 26 16:11:29 2026",
-            "duration": 36.01975440979004,
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_late_recovery.h5ad": {
+            "start-time": "Sun Mar  1 21:53:55 2026",
+            "stop-time": "Sun Mar  1 21:57:25 2026",
+            "duration": 209.53487491607666,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -36,10 +46,10 @@
                 "mem_mib": 30518
             }
         },
-        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy_subtype/merge.h5ad": {
-            "start-time": "Thu Feb 26 16:11:29 2026",
-            "stop-time": "Thu Feb 26 16:11:44 2026",
-            "duration": 14.240523338317871,
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_early_recovery.h5ad": {
+            "start-time": "Sun Mar  1 21:53:55 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 205.61460065841675,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -49,10 +59,275 @@
                 "mem_mib": 30518
             }
         },
-        "/mnt/projects_tn03/AD_EB_singlecell/mk_healthy_subtype/logs/merged_visualized_adult.log": {
-            "start-time": "Thu Feb 26 16:11:44 2026",
-            "stop-time": "Thu Feb 26 16:11:44 2026",
-            "duration": 0.12668609619140625,
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_healthy.h5ad": {
+            "start-time": "Sun Mar  1 21:53:55 2026",
+            "stop-time": "Sun Mar  1 21:58:51 2026",
+            "duration": 295.3952353000641,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_treatment.h5ad": {
+            "start-time": "Sun Mar  1 21:53:55 2026",
+            "stop-time": "Sun Mar  1 21:57:29 2026",
+            "duration": 213.8983645439148,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_covid.h5ad": {
+            "start-time": "Sun Mar  1 21:53:55 2026",
+            "stop-time": "Sun Mar  1 22:12:20 2026",
+            "duration": 1104.9238822460175,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/find/BloodAdvances_COVID_Megakaryocytes_influenza.h5ad": {
+            "start-time": "Sun Mar  1 21:53:56 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 205.58642148971558,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_early_recovery.stderr": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.07505273818969727,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_early_recovery.stdout": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.07505273818969727,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_healthy.stderr": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.05521583557128906,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_healthy.stdout": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.05521583557128906,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_treatment.stderr": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.0671989917755127,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_treatment.stdout": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.0671989917755127,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_influenza.stderr": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.059561729431152344,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_influenza.stdout": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.059561729431152344,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_late_recovery.stderr": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.056302547454833984,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_late_recovery.stdout": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.056302547454833984,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_covid.stderr": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.04468417167663574,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/std/QC_BloodAdvances_COVID_Megakaryocytes_covid.stdout": {
+            "start-time": "Sun Mar  1 21:57:21 2026",
+            "stop-time": "Sun Mar  1 21:57:21 2026",
+            "duration": 0.04468417167663574,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/harmonized/.done": {
+            "start-time": "Sun Mar  1 22:12:20 2026",
+            "stop-time": "Sun Mar  1 22:18:27 2026",
+            "duration": 367.0346369743347,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/merge.h5ad": {
+            "start-time": "Sun Mar  1 22:18:27 2026",
+            "stop-time": "Sun Mar  1 22:19:18 2026",
+            "duration": 50.309717416763306,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp",
+                "mem_mb": 32000,
+                "mem_mib": 30518
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_covid.log": {
+            "start-time": "Sun Mar  1 22:19:18 2026",
+            "stop-time": "Sun Mar  1 22:19:18 2026",
+            "duration": 0.17347359657287598,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_influenza.log": {
+            "start-time": "Sun Mar  1 22:19:18 2026",
+            "stop-time": "Sun Mar  1 22:19:18 2026",
+            "duration": 0.13638615608215332,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_late_recovery.log": {
+            "start-time": "Sun Mar  1 22:19:18 2026",
+            "stop-time": "Sun Mar  1 22:19:18 2026",
+            "duration": 0.09775519371032715,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_early_recovery.log": {
+            "start-time": "Sun Mar  1 22:19:18 2026",
+            "stop-time": "Sun Mar  1 22:19:18 2026",
+            "duration": 0.13424348831176758,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_healthy.log": {
+            "start-time": "Sun Mar  1 22:19:18 2026",
+            "stop-time": "Sun Mar  1 22:19:18 2026",
+            "duration": 0.13740277290344238,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/article/results_fortman/logs/BloodAdvances_COVID_Megakaryocytes_treatment.log": {
+            "start-time": "Sun Mar  1 22:19:18 2026",
+            "stop-time": "Sun Mar  1 22:19:18 2026",
+            "duration": 0.1294853687286377,
             "priority": 0,
             "resources": {
                 "_cores": 1,

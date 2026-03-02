@@ -351,7 +351,10 @@ def step4bis_calculate_exclude_probabilities(candidate_cells: sc.AnnData,
         else:
             # Predict probabilities
             probas = gmm_excl.predict_proba(candidate_cells.obs[f"exclude_mean_expr_{category}"].values.reshape(-1, 1))
-            probas = probas * (candidate_cells.obs[f"exclude_mean_expr_{category}"].values.reshape(-1, 1) > 0)
+
+            if exclude_celltypes == "True":
+                # Set probability to 0 for cells with zero exclude mean expression
+                probas = probas * (candidate_cells.obs[f"exclude_mean_expr_{category}"].values.reshape(-1, 1) > 0)
 
             candidate_cells.uns[f"exclude_indices_{category}"] = exclude_indices
 
