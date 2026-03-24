@@ -227,8 +227,17 @@ def step2_find_candidates(
             )
             candidate_cells = normalize_and_log(candidate_cells, layer="raw")
         else:
-            print("No raw layers found. Continuing with all cells.")
-            candidate_cells = adata.copy()
+            try:
+                adata_raw = adata.raw.X
+                print("adata.raw found and appears raw, using for further analysis.")
+                adata.layers["raw"] = adata_raw.copy()
+                candidate_cells = find_candidate_cells(
+                    adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold
+                )
+                candidate_cells = normalize_and_log(candidate_cells, layer="raw")
+            except AttributeError:
+                print("No raw layers found. Continuing with all cells.")
+                candidate_cells = adata.copy()
     else:
         adata.layers["raw"] = adata.X.copy()
         candidate_cells = find_candidate_cells(
