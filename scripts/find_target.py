@@ -227,10 +227,12 @@ def step2_find_candidates(
             )
             candidate_cells = normalize_and_log(candidate_cells, layer="raw")
         else:
+            print("Checking adata.raw...1")
             try:
-                adata_raw = adata.raw.X
-                print("adata.raw found and appears raw, using for further analysis.")
-                adata.layers["raw"] = adata_raw.copy()
+                print("Checking adata.raw...2")
+                adata.X = adata.raw.X.copy()
+                print("adata.raw found, using for further analysis.")
+                adata.layers["raw"] = adata.X.copy()
                 candidate_cells = find_candidate_cells(
                     adata, candidate_genes_avail, min_genes_detected, gene_detection_threshold
                 )

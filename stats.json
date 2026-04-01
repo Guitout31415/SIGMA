@@ -1,37 +1,32 @@
 {
-    "total_runtime": 2203.0419549942017,
+    "total_runtime": 1749.477665424347,
     "rules": {
-        "find_target": {
-            "mean-runtime": 112.00621461868286,
-            "min-runtime": 112.00621461868286,
-            "max-runtime": 112.00621461868286
-        },
         "harmonize_metadata": {
-            "mean-runtime": 1765.942830324173,
-            "min-runtime": 1765.942830324173,
-            "max-runtime": 1765.942830324173
+            "mean-runtime": 1345.9142224788666,
+            "min-runtime": 1345.9142224788666,
+            "max-runtime": 1345.9142224788666
         },
         "merge_studies": {
-            "mean-runtime": 324.47433972358704,
-            "min-runtime": 324.47433972358704,
-            "max-runtime": 324.47433972358704
+            "mean-runtime": 397.15937304496765,
+            "min-runtime": 397.15937304496765,
+            "max-runtime": 397.15937304496765
         },
         "merge_logs": {
-            "mean-runtime": 0.13207679636338177,
-            "min-runtime": 0.07831263542175293,
-            "max-runtime": 0.20108461380004883
+            "mean-runtime": 0.4496526927947998,
+            "min-runtime": 0.22364568710327148,
+            "max-runtime": 0.7909653186798096
         },
         "all": {
-            "mean-runtime": 0.0018527507781982422,
-            "min-runtime": 0.0018527507781982422,
-            "max-runtime": 0.0018527507781982422
+            "mean-runtime": 0.007239580154418945,
+            "min-runtime": 0.007239580154418945,
+            "max-runtime": 0.007239580154418945
         }
     },
     "files": {
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/find/Dominguez_science_science-abl5197_SKM_data.h5ad": {
-            "start-time": "Sun Mar  1 23:03:31 2026",
-            "stop-time": "Sun Mar  1 23:05:23 2026",
-            "duration": 112.00621461868286,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/harmonized/.done": {
+            "start-time": "Mon Mar 30 09:56:01 2026",
+            "stop-time": "Mon Mar 30 10:18:27 2026",
+            "duration": 1345.9142224788666,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -41,10 +36,10 @@
                 "mem_mib": 30518
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/harmonized/.done": {
-            "start-time": "Sun Mar  1 23:05:23 2026",
-            "stop-time": "Sun Mar  1 23:34:49 2026",
-            "duration": 1765.942830324173,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/merge.h5ad": {
+            "start-time": "Mon Mar 30 10:18:27 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 397.15937304496765,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -54,23 +49,10 @@
                 "mem_mib": 30518
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/merge.h5ad": {
-            "start-time": "Sun Mar  1 23:34:49 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 324.47433972358704,
-            "priority": 0,
-            "resources": {
-                "_cores": 1,
-                "_nodes": 1,
-                "tmpdir": "/tmp",
-                "mem_mb": 32000,
-                "mem_mib": 30518
-            }
-        },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SPL_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.16972637176513672,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_duodenum.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.5425238609313965,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -78,10 +60,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_JEJEPI_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.10997867584228516,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_testis.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.4937429428100586,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -89,10 +71,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_JEJLP_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.07831263542175293,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Guilliams_10_1016_j_cell_2021_12_018_liver.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.49218249320983887,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -100,10 +82,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_BMA_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.10842347145080566,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Potter_10_1016_j_healun_2026_02_1666_lung.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.5083494186401367,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -111,10 +93,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_MLN_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.11163592338562012,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Dominguez_10_1126_science_abl5197_bone_marrow.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.5063607692718506,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -122,10 +104,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LIV_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.1114504337310791,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Dominguez_10_1126_science_abl5197_spleen.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.5155203342437744,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -133,10 +115,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LLN_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.1256401538848877,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_skin_of_abdomen.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.41861772537231445,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -144,10 +126,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_LNG_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.1259608268737793,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_bone_marrow.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.33739233016967773,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -155,10 +137,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SKM_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.10388755798339844,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wong_10_1016_j_ajt_2024_08_019_lung.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.370678186416626,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -166,10 +148,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_DUO_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.10884928703308105,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Madissoon_10_1038_s41588_022_01243_4_lung.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.33629822731018066,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -177,10 +159,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_BLD_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.1114354133605957,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Dominguez_10_1126_science_abl5197_blood.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.2670128345489502,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -188,10 +170,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_ILE_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.11363363265991211,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_heart.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:05 2026",
+            "duration": 0.26671600341796875,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -199,10 +181,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_SCL_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.19439911842346191,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_lung.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.6724371910095215,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -210,10 +192,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_TCL_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.20108461380004883,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_liver.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.6774759292602539,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -221,10 +203,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_OME_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.16158342361450195,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Zeng_10_1158_2643_3230_BCD_24_0342_bone.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.6790359020233154,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -232,10 +214,10 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_CAE_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.13101816177368164,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Heimlich_10_1182_bloodadvances_2023011445_blood.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.545027494430542,
             "priority": 0,
             "resources": {
                 "_cores": 1,
@@ -243,10 +225,1198 @@
                 "tmpdir": "/tmp"
             }
         },
-        "/mnt/projects_tn03/Data_MK/article/results_dominguez/logs/Dominguez_science_science-abl5197_THY_data.log": {
-            "start-time": "Sun Mar  1 23:40:14 2026",
-            "stop-time": "Sun Mar  1 23:40:14 2026",
-            "duration": 0.17828583717346191,
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_lung.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.5576198101043701,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_bone_marrow.log": {
+            "start-time": "Mon Mar 30 10:25:05 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.5531027317047119,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_lung.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.3908421993255615,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Xu_10_1016_j_cell_2023_11_026_liver.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.39134883880615234,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Furer_10_1038_s41591_025_03716_5_blood.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.38953208923339844,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Edgar_10_1097_HC9_0000000000000813_liver.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.3662717342376709,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Lake_10_1101_2025_09_26_678707_kidney.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.34095001220703125,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Xu_10_1016_j_cell_2023_11_026_bone.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.33794140815734863,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Guimaraes_10_1038_s41467_024_49916_4_lung.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.6220712661743164,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Xu_10_1016_j_cell_2023_11_026_lung.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.6308226585388184,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Guo_10_1038_s41467_023_40173_5_lung.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.634941577911377,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/DeSimone_10_1093_nar_gkae1186_blood.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:06 2026",
+            "duration": 0.3567662239074707,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Sikkema_10_1038_s41591_023_02327_2_lung.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.37557435035705566,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Jin_10_1016_j_isci_2021_103115_blood.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.3439497947692871,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_spleen.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.36304473876953125,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Gong_10_1038_s41586_025_09686_5_blood.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.3690516948699951,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_posterior_segment_of_eyeball.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.36536359786987305,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Lee_10_1126_sciimmunol_abd1554_blood.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.32844018936157227,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Xu_10_1016_j_cell_2023_11_026_blood.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.33058738708496094,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Xu_10_1016_j_cell_2023_11_026_spleen.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.3263099193572998,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_liver.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.7106242179870605,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_blood.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.6465022563934326,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Whittle_10_7554_eLife_104978_bone.log": {
+            "start-time": "Mon Mar 30 10:25:06 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.6605195999145508,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Binvignat_10_1172_jci_insight_178499_blood.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.4141991138458252,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_large_intestine.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.41257667541503906,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Dominguez_10_1126_science_abl5197_thoracic_lymph_node.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.367999792098999,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_mesenteric_lymph_node.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.370405912399292,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_thoracic_lymph_node.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.3726952075958252,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_lacrimal_gland.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.3559119701385498,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_anterior_segment_of_eyeball.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.3479797840118408,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_ileum.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.5814783573150635,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_inguinal_lymph_node.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.5442287921905518,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_heart_right_ventricle.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.5111315250396729,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_body_of_stomach.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:07 2026",
+            "duration": 0.5450611114501953,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Dominguez_10_1126_science_abl5197_jejunum_lamina_propria.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.5335042476654053,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_brown_adipose_tissue.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.3423583507537842,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Rabadam_10_1172_jci_insight_176963_blood.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.3471522331237793,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_right_cardiac_atrium.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.3502364158630371,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_mammary_gland.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.34940052032470703,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_colon.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.3389706611633301,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_bladder_organ.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.6813137531280518,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_lymph_node.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.2958104610443115,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_subcutaneous_adipose_tissue.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.6071863174438477,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_aorta.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.6270639896392822,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_stomach.log": {
+            "start-time": "Mon Mar 30 10:25:07 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.6190032958984375,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_stomach_smooth_muscle.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.3824484348297119,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_muscle_of_pelvic_diaphragm.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.3838996887207031,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_posterior_part_of_tongue.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.387164831161499,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_prostate_gland.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.3901665210723877,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_parotid_gland.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.39176058769226074,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_trachea.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.30690598487854004,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Watanabe_10_1165_rcmb_2021_0555OC_lung.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.6511316299438477,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_muscle_of_abdomen.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.6512084007263184,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_sublingual_gland.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.5849344730377197,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_coronary_artery.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:08 2026",
+            "duration": 0.606482744216919,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_anterior_part_of_tongue.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.6223788261413574,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_skin_of_body.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.4267597198486328,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_right_ovary.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.44968485832214355,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_duodenum.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.38575243949890137,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_left_ovary.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.3698747158050537,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_vasculature.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.37044763565063477,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_kidney.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.3718438148498535,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_exocrine_pancreas.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.3615903854370117,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_skin_of_chest.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.7909653186798096,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_endometrium.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.7869510650634766,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_cornea.log": {
+            "start-time": "Mon Mar 30 10:25:08 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.7858235836029053,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_thymus.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.5357272624969482,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_adipose_tissue.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.5505170822143555,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_submandibular_gland.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.4821510314941406,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_eyelid.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.33844852447509766,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_myometrium.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.3340768814086914,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_blood.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.30456995964050293,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_stomach.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.30429577827453613,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_sigmoid_colon.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.29470348358154297,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_sclera.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.2949333190917969,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Dominguez_10_1126_science_abl5197_lung.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:09 2026",
+            "duration": 0.2904999256134033,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wang_10_1016_j_immuni_2023_01_032_lung.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.6547360420227051,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/McEvoy_10_1038_s41467_022_35297_z_kidney.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.6492002010345459,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_cardiac_atrium.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.48687076568603516,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_ascending_colon.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.5042204856872559,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_thoracic_aorta.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.4741239547729492,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_utricle_of_membranous_labyrinth.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.5139341354370117,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_epithelial_lining_fluid.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.4756197929382324,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/AceraMateos_10_1101_2025_03_06_637075_kidney.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.4806544780731201,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_eye.log": {
+            "start-time": "Mon Mar 30 10:25:09 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.4791245460510254,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_cardiac_ventricle.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.45607757568359375,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_ileum.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.45634007453918457,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_retinal_neural_layer.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.6978580951690674,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_small_intestine.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.6710488796234131,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Rustam_10_1164_rccm_202207_1384OC_lung.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.6499946117401123,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_buccal_mucosa.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.5974390506744385,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_spleen.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.33486151695251465,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_esophagus.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.33484411239624023,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_crista_ampullaris.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.3363645076751709,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Xu_10_1016_j_cell_2023_11_026_kidney.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.3386573791503906,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Salcher_10_1016_j_ccell_2022_10_008_lung.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.33215975761413574,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_pyloric_antrum.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.32650017738342285,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_mucosa_of_stomach.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.3247182369232178,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_jejunum_lamina_propria.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:10 2026",
+            "duration": 0.3193645477294922,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_small_intestine.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.47423362731933594,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_epithelium_of_trachea.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.4582200050354004,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Chan_10_1016_j_ccell_2021_09_008_lung.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.4579019546508789,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Dominguez_10_1126_science_abl5197_jejunal_epithelium.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.22364568710327148,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Guimaraes_10_1038_s41467_024_49916_4_skin_epidermis.log": {
+            "start-time": "Mon Mar 30 10:25:10 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.3036623001098633,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_jejunum.log": {
+            "start-time": "Mon Mar 30 10:25:11 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.22606563568115234,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_endocrine_pancreas.log": {
+            "start-time": "Mon Mar 30 10:25:11 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.27118611335754395,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Yu_10_1016_j_cell_2021_04_028_jejunum.log": {
+            "start-time": "Mon Mar 30 10:25:11 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.26528167724609375,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Tabula_10_1126_science_abl4896_conjunctiva.log": {
+            "start-time": "Mon Mar 30 10:25:11 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.27666163444519043,
+            "priority": 0,
+            "resources": {
+                "_cores": 1,
+                "_nodes": 1,
+                "tmpdir": "/tmp"
+            }
+        },
+        "/mnt/projects_tn03/Data_MK/these/mk_healthy_cellxgene_SIGMA/logs/Wells_10_1038_s41590_025_02241_4_jejunal_epithelium.log": {
+            "start-time": "Mon Mar 30 10:25:11 2026",
+            "stop-time": "Mon Mar 30 10:25:11 2026",
+            "duration": 0.22969770431518555,
             "priority": 0,
             "resources": {
                 "_cores": 1,
