@@ -67,6 +67,7 @@ snakemake \
 - Check log files in `data/results/logs/` for errors.
 - Ensure all dependencies are installed and input files are correctly formatted.
 - For `.rds` file, please open and use `scripts/convert_to_h5ad.R`
+
 ## License
 
 GPL-3.0 License. See [LICENSE](LICENSE).
