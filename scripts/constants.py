@@ -17,10 +17,10 @@ import matplotlib.colors as mcolors
 MT_GENE_PATTERN = r"^MT-|^mt-"
 """Regex pattern for mitochondrial genes."""
 
-RIBO_GENE_PATTERN = r"^RP[LS]\d+"
+RIBO_GENE_PATTERN = r"^RP[LS]\d+|^Rp[ls]\d+"
 """Regex pattern for ribosomal genes."""
 
-HB_GENE_PATTERN = r"^HB[^P]|^HB[AB]"
+HB_GENE_PATTERN = r"^HB[^P]|^HB[AB]|^Hb[ab]"
 """Regex pattern for hemoglobin genes."""
 
 
@@ -81,6 +81,15 @@ DEFAULT_SPECIES = "hsapiens"
 
 DEFAULT_HOST = "http://www.ensembl.org"
 """Default Ensembl BioMart host URL."""
+
+ENSEMBL_FALLBACK_HOSTS = [
+    "https://www.ensembl.org",
+    "http://www.ensembl.org",
+    "https://useast.ensembl.org",
+    "https://uswest.ensembl.org",
+    "https://asia.ensembl.org",
+]
+"""Fallback Ensembl BioMart hosts to try when the default host is unavailable."""
 
 ENSEMBL_ATTRIBUTES = [
     "ensembl_gene_id",

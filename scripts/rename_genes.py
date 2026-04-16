@@ -12,16 +12,50 @@ Examples:
     ['gene1', 'gene2']
 """
 
+from functools import lru_cache
 from typing import List, Dict
+import warnings
+
 import pandas as pd
 from pybiomart import Dataset
 
 from constants import (
     DEFAULT_SPECIES,
     DEFAULT_HOST,
+    ENSEMBL_FALLBACK_HOSTS,
     ENSEMBL_ATTRIBUTES,
     GENE_NAME_COLUMN,
 )
+
+
+def _get_host_candidates(host: str) -> List[str]:
+    """Build an ordered list of Ensembl hosts to try."""
+    ordered_hosts = [host.strip()]
+
+    if host.startswith("http://"):
+        ordered_hosts.append("https://" + host[len("http://"):])
+    elif host.startswith("https://"):
+        ordered_hosts.append("http://" + host[len("https://"):])
+    elif host:
+        ordered_hosts.extend([f"https://{host}", f"http://{host}"])
+
+    ordered_hosts.extend(ENSEMBL_FALLBACK_HOSTS)
+
+    deduped_hosts = []
+    seen = set()
+    for h in ordered_hosts:
+        clean_h = h.strip()
+        if clean_h and clean_h not in seen:
+            deduped_hosts.append(clean_h)
+            seen.add(clean_h)
+    return deduped_hosts
+
+
+@lru_cache(maxsize=32)
+def _query_ensembl(species: str, host: str) -> pd.DataFrame:
+    """Run a single BioMart query for one species/host pair."""
+    dataset = Dataset(name=f"{species}_gene_ensembl", host=host)
+    return dataset.query(attributes=ENSEMBL_ATTRIBUTES)
 
 
 def _fetch_ensembl_data(species: str, host: str) -> pd.DataFrame:
@@ -37,11 +71,17 @@ def _fetch_ensembl_data(species: str, host: str) -> pd.DataFrame:
     Raises:
         ValueError: If unable to connect to Ensembl
     """
-    try:
-        dataset = Dataset(name=f"{species}_gene_ensembl", host=host)
-        return dataset.query(attributes=ENSEMBL_ATTRIBUTES)
-    except Exception as e:
-        raise ValueError(f"Unable to connect to Ensembl host: {e}")
+    errors = []
+    for candidate_host in _get_host_candidates(host):
+        try:
+            return _query_ensembl(species, candidate_host)
+        except Exception as e:
+            errors.append(f"{candidate_host} -> {type(e).__name__}: {e}")
+
+    raise ValueError(
+        "Unable to connect to Ensembl BioMart. Tried hosts: "
+        + " | ".join(errors)
+    )
 
 
 def _build_gene_lookup(genes_df: pd.DataFrame) -> Dict[str, int]:
@@ -57,7 +97,7 @@ def _build_gene_lookup(genes_df: pd.DataFrame) -> Dict[str, int]:
     for row_idx, row in genes_df.iterrows():
         for identifier in row:
             if pd.notna(identifier) and identifier != "":
-                lookup[identifier] = row_idx
+                lookup[str(identifier).strip().upper()] = row_idx
     return lookup
 
 
@@ -110,8 +150,28 @@ def rename_genes(
     assert isinstance(species, str), "species must be a string"
     assert isinstance(host, str), "host must be a string"
 
-    genes_df = _fetch_ensembl_data(species, host)
-    lookup = _build_gene_lookup(genes_df)
-
     genes_upper = [g.strip().upper() for g in gene_list]
+
+    try:
+        genes_df = _fetch_ensembl_data(species, host)
+    except ValueError as e:
+        warnings.warn(
+            "Ensembl BioMart is unavailable. "
+            "Proceeding without gene alias remapping and keeping input identifiers. "
+            f"Details: {e}",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return genes_upper
+
+    if GENE_NAME_COLUMN not in genes_df.columns:
+        warnings.warn(
+            f"Expected column '{GENE_NAME_COLUMN}' not found in Ensembl response. "
+            "Proceeding without gene alias remapping.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return genes_upper
+
+    lookup = _build_gene_lookup(genes_df)
     return [_map_single_gene(g, lookup, genes_df) for g in genes_upper]

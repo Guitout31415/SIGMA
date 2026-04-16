@@ -41,6 +41,36 @@ def set_thread_environment(threads: int) -> None:
         os.environ[var] = str(threads)
 
 
+def _make_names_unique(names: pd.Index) -> pd.Index:
+    """Return a unique version of a pandas index using '-N' suffixes."""
+    names = pd.Index(names.astype(str))
+    if not names.has_duplicates:
+        return names
+
+    seen = set()
+    counters = {}
+    unique_names = []
+
+    for name in names:
+        if name not in seen:
+            seen.add(name)
+            counters[name] = 1
+            unique_names.append(name)
+            continue
+
+        suffix = counters.get(name, 1)
+        candidate = f"{name}-{suffix}"
+        while candidate in seen:
+            suffix += 1
+            candidate = f"{name}-{suffix}"
+
+        counters[name] = suffix + 1
+        seen.add(candidate)
+        unique_names.append(candidate)
+
+    return pd.Index(unique_names)
+
+
 # =============================================================================
 # Data Preparation
 # =============================================================================
@@ -80,13 +110,16 @@ def prepare_adata_qc(adata: AnnData, species: str) -> AnnData:
     if count_matrix is None:
         count_matrix = adata.X
 
-    adata = AnnData(X=count_matrix, obs=adata.obs.copy(), var=var_source.copy())
+    original_var_names = pd.Index(var_source.index)
+    renamed_genes = rename_genes(original_var_names.tolist(), species)
+    genes = pd.Series(renamed_genes, index=original_var_names, dtype="object")
+    missing_mask = genes.isna() | genes.eq("")
+    genes.loc[missing_mask] = genes.index[missing_mask]
 
-    genes = rename_genes(adata.var_names.to_list(), species)
-    adata.var_names = genes
+    prepared_var = var_source.copy()
+    prepared_var.index = _make_names_unique(pd.Index(genes.astype(str).str.strip()))
 
-    if adata.var_names.has_duplicates:
-        adata.var_names_make_unique()
+    adata = AnnData(X=count_matrix, obs=adata.obs.copy(), var=prepared_var)
 
     # Keep a pointer to the count matrix for downstream steps; this avoids
     # accidentally running doublet detection on normalized data.
@@ -115,11 +148,12 @@ def prepare_adata_target(adata: AnnData, species: str) -> AnnData:
     genes = pd.Series(renamed_genes, index=original_var_names, dtype="object")
     missing_mask = genes.isna() | genes.eq("")
     genes.loc[missing_mask] = genes.index[missing_mask]
-    genes = genes.astype(str).str.strip().str.upper()
+    genes = pd.Index(genes.astype(str).str.strip().str.upper())
 
-    adata = AnnData(X=count_matrix, obs=adata.obs.copy(), var=adata.var.copy())
-    adata.var_names = genes
-    adata.var_names_make_unique()
+    prepared_var = adata.var.copy()
+    prepared_var.index = _make_names_unique(genes)
+
+    adata = AnnData(X=count_matrix, obs=adata.obs.copy(), var=prepared_var)
 
     return adata
 
