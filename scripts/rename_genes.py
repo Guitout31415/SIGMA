@@ -28,18 +28,29 @@ from constants import (
 )
 
 
+_BIOMART_WARNING_EMITTED = set()
+
+
+def _normalize_biomart_host(host: str) -> str:
+    """Normalize host format expected by pybiomart.
+
+    pybiomart can mis-handle https URLs (e.g., parsing host as "https").
+    Prefer explicit http URLs for robust mirror fallback behavior.
+    """
+    clean_host = host.strip()
+    if clean_host.startswith("https://"):
+        return "http://" + clean_host[len("https://"):]
+    if clean_host.startswith("http://"):
+        return clean_host
+    if clean_host:
+        return f"http://{clean_host}"
+    return clean_host
+
+
 def _get_host_candidates(host: str) -> List[str]:
     """Build an ordered list of Ensembl hosts to try."""
-    ordered_hosts = [host.strip()]
-
-    if host.startswith("http://"):
-        ordered_hosts.append("https://" + host[len("http://"):])
-    elif host.startswith("https://"):
-        ordered_hosts.append("http://" + host[len("https://"):])
-    elif host:
-        ordered_hosts.extend([f"https://{host}", f"http://{host}"])
-
-    ordered_hosts.extend(ENSEMBL_FALLBACK_HOSTS)
+    ordered_hosts = [_normalize_biomart_host(host)]
+    ordered_hosts.extend(_normalize_biomart_host(h) for h in ENSEMBL_FALLBACK_HOSTS)
 
     deduped_hosts = []
     seen = set()
@@ -155,13 +166,16 @@ def rename_genes(
     try:
         genes_df = _fetch_ensembl_data(species, host)
     except ValueError as e:
-        warnings.warn(
-            "Ensembl BioMart is unavailable. "
-            "Proceeding without gene alias remapping and keeping input identifiers. "
-            f"Details: {e}",
-            RuntimeWarning,
-            stacklevel=2,
-        )
+        warning_key = (species.strip().lower(), _normalize_biomart_host(host))
+        if warning_key not in _BIOMART_WARNING_EMITTED:
+            warnings.warn(
+                "Ensembl BioMart is unavailable. "
+                "Proceeding without gene alias remapping and keeping input identifiers. "
+                f"Details: {e}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            _BIOMART_WARNING_EMITTED.add(warning_key)
         return genes_upper
 
     if GENE_NAME_COLUMN not in genes_df.columns:

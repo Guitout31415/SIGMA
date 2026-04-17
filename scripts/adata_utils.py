@@ -283,7 +283,8 @@ def find_candidate_cells(
 
     if not available_genes:
         print("No available genes to filter on. Returning empty AnnData object.")
-        return AnnData(np.array([]))
+        # Keep all genes/metadata but return zero cells with a valid 2D matrix.
+        return filtered_adata[[], :].copy()
 
     gene_expression_matrix = filtered_adata[:, available_genes].to_df()
     genes_detected_per_cell = (gene_expression_matrix >= threshold).sum(axis=1)
