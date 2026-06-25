@@ -93,13 +93,13 @@ def parse_arguments() -> argparse.Namespace:
         "--n_components_target",
         type=str,
         default="auto",
-        help="Number of GMM components for target genes, or 'auto'.",
+        help="Number of GMM components for target genes: 'auto' (KDE), 'bic', or an integer.",
     )
     parser.add_argument(
         "--n_components_exclu",
         type=str,
         default="auto",
-        help="Number of GMM components for exclude genes, or 'auto'.",
+        help="Number of GMM components for exclude genes: 'auto' (KDE), 'bic', or an integer.",
     )
     parser.add_argument(
         "--min_mean_expression",
@@ -272,8 +272,10 @@ def step2_find_candidates(
 
 def step3_fit_gmm_target(candidate_cells: sc.AnnData,
                          target_genes_avail: set,
-                         n_components_target: str) -> tuple:
-    
+                         n_components_target: str,
+                         plot_folder: str = None,
+                         study_name: str = None) -> tuple:
+
     # already_normalized = check_if_normalized(candidate_cells)
     sub_candidate = candidate_cells.copy()
 
@@ -282,14 +284,16 @@ def step3_fit_gmm_target(candidate_cells: sc.AnnData,
     candidate_cells.obs["target_mean_expr"] = target_df.mean(axis=1)
 
     # Fit GMM and predict probabilities for target genes
-    gmm_target = fit_gmm(candidate_cells.obs["target_mean_expr"], n_components_target, "Target", "False")
+    gmm_target = fit_gmm(candidate_cells.obs["target_mean_expr"], n_components_target, "Target", "False", plot_folder, study_name)
 
     return gmm_target, candidate_cells
 
 def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
                             exclude_genes_avail: dict,
                             n_components_exclu: str,
-                            exclude_celltypes: str) -> tuple:
+                            exclude_celltypes: str,
+                            plot_folder: str = None,
+                            study_name: str = None) -> tuple:
     gmm_excludes = {}
     
     if not exclude_genes_avail:
@@ -308,7 +312,7 @@ def step3bis_fit_gmm_exclude(candidate_cells: sc.AnnData,
         candidate_cells.obs[f"exclude_mean_expr_{category}"] = exclude_df.mean(axis=1)
         
         # Fit GMM and predict probabilities for exclude genes
-        gmm_exclude = fit_gmm(candidate_cells.obs[f"exclude_mean_expr_{category}"], n_components_exclu, category, exclude_celltypes)
+        gmm_exclude = fit_gmm(candidate_cells.obs[f"exclude_mean_expr_{category}"], n_components_exclu, category, exclude_celltypes, plot_folder, study_name)
 
         # Store results
         if gmm_exclude is not None:
@@ -478,7 +482,7 @@ def find_target_cells(
 
     # Step 3: Fit GMM for target genes
     gmm_target, candidate_cells = step3_fit_gmm_target(
-        candidate_cells, target_genes_avail, n_components_target
+        candidate_cells, target_genes_avail, n_components_target, plot_folder, study_name
     )
 
     if gmm_target == None:
@@ -489,7 +493,7 @@ def find_target_cells(
 
     # Step 3bis: Fit GMM for exclusion genes
     gmm_exclude, candidate_cells = step3bis_fit_gmm_exclude(
-        candidate_cells, exclude_genes_avail, n_components_exclu, exclude_celltypes
+        candidate_cells, exclude_genes_avail, n_components_exclu, exclude_celltypes, plot_folder, study_name
     )
     
     # Step 4: Calculate target probabilities

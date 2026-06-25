@@ -71,6 +71,12 @@ CV_FOLDS = 5
 CV_TEST_SIZE = 1/3
 """Test set proportion for cross-validation."""
 
+GMM_MAX_COMPONENTS = 10
+"""Maximum number of components tested when building the BIC curve."""
+
+GMM_RANDOM_STATE = 0
+"""Fixed random state for the BIC component-selection path (reproducibility)."""
+
 
 # =============================================================================
 # Ensembl / Gene Renaming Constants

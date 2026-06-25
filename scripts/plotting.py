@@ -43,6 +43,55 @@ def plot_gmm_fit_hist(ax: plt.Axes, adata: AnnData, gmm: GaussianMixture, mean_e
         ax.plot(x, pdf_individual[:, i], '--', label=f'Component {i+1}')
     ax.legend()
 
+def plot_bic_curve(
+    bic_scores: np.ndarray,
+    n_chosen: int,
+    category: str,
+    plot_folder: str,
+    study_name: Optional[str] = None,
+) -> None:
+    """Save the BIC-vs-n_components diagnostic for the BIC selection mode.
+
+    Plots the BIC value for each tested number of components and marks the
+    number selected at the elbow of the curve, documenting the reproducible
+    component-selection step.
+
+    Args:
+        bic_scores: BIC value per tested n_components (n = 1, 2, ...)
+        n_chosen: Number of components selected at the BIC elbow
+        category: Category name ('Target' or exclusion category)
+        plot_folder: Directory to save the plot
+        study_name: Name of the study for the filename
+    """
+    os.makedirs(plot_folder, exist_ok=True)
+    prefix = f"{study_name}_" if study_name else ""
+    plot_path = os.path.join(plot_folder, f"{prefix}{category}_bic_selection.png")
+
+    n_values = np.arange(1, len(bic_scores) + 1)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(n_values, bic_scores, "o-", color="black", label="BIC")
+    ax.axvline(
+        n_chosen,
+        color="red",
+        linestyle="--",
+        label=f"Selected: {n_chosen} component(s)",
+    )
+    ax.set(
+        title=f"BIC vs number of GMM components ({category})",
+        xlabel="Number of components",
+        ylabel="BIC",
+    )
+    ax.set_xticks(n_values)
+    ax.grid(True, linestyle="--", alpha=0.5)
+    ax.legend()
+
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"BIC selection plot saved to: {plot_path}")
+
+
 def plot_target_figures(
     adata: AnnData,
     gmm_target: GaussianMixture,

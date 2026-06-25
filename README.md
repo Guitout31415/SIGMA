@@ -34,6 +34,11 @@ Edit `config_template.conf` to specify:
 - **[Folder]**: Input/output folder paths
 - **[Options]**: Species, QC parameters, plotting options
 
+The number of components for the Gaussian Mixture Models (`n_components_target` and
+`n_components_exclu` in **[Thresholds]**) accepts `auto` (KDE peak detection, default),
+`bic` (reproducible selection at the elbow of the BIC-vs-n_components curve), or a
+fixed integer. With `bic`, a diagnostic BIC curve is saved to the plots folder.
+
 ## Usage
 
 Run the pipeline with Snakemake:

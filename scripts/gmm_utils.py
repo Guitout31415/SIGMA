@@ -23,7 +23,10 @@ from constants import (
     ASHMANN_DISTANCE_THRESHOLD,
     CV_FOLDS,
     CV_TEST_SIZE,
+    GMM_MAX_COMPONENTS,
+    GMM_RANDOM_STATE,
 )
+from plotting import plot_bic_curve
 
 
 # =============================================================================
@@ -143,25 +146,118 @@ def find_optimal_gmm_components(
     return n_peaks, estimated_means
 
 
+def _bic_elbow(bic_scores: np.ndarray) -> int:
+    """Locate the elbow of a BIC-vs-n_components curve.
+
+    Finds the point of maximum perpendicular distance to the straight line
+    joining the first and last points of the curve (the kneedle criterion,
+    conceptually the approach used by findPC, PMID 35561205). This favours the
+    number of components beyond which adding more yields diminishing returns,
+    and is fully deterministic.
+
+    Args:
+        bic_scores: BIC values for n_components = 1, 2, ... (in order)
+
+    Returns:
+        Zero-based index of the elbow (add 1 to get the number of components).
+    """
+    bic_scores = np.asarray(bic_scores, dtype=float)
+    n_points = len(bic_scores)
+    if n_points < 3:
+        return int(np.argmin(bic_scores))
+
+    x = np.arange(n_points, dtype=float)
+    x_first, x_last = x[0], x[-1]
+    y_first, y_last = bic_scores[0], bic_scores[-1]
+
+    # Perpendicular distance from each point to the first-last line.
+    numerator = np.abs(
+        (y_last - y_first) * x
+        - (x_last - x_first) * bic_scores
+        + x_last * y_first
+        - y_last * x_first
+    )
+    denominator = np.hypot(y_last - y_first, x_last - x_first)
+    if denominator == 0:
+        return int(np.argmin(bic_scores))
+
+    distances = numerator / denominator
+    return int(np.argmax(distances))
+
+
+def find_optimal_gmm_components_bic(
+    data: np.ndarray,
+    exclude_celltypes: str,
+    category: str,
+) -> Tuple[int, Optional[np.ndarray], np.ndarray]:
+    """Select the number of GMM components from the elbow of the BIC curve.
+
+    Fits a GaussianMixture for n = 1..GMM_MAX_COMPONENTS with a fixed random
+    state, builds the BIC-vs-n curve, and returns the number of components at
+    the elbow of that curve. The fixed random state makes the selection fully
+    reproducible across runs.
+
+    Args:
+        data: Expression data array
+        exclude_celltypes: Whether to exclude entire cell types ('True'/'False')
+        category: Category name ('Target' or exclusion category)
+
+    Returns:
+        Tuple of (n_components, initial_means, bic_scores)
+            n_components: Number of components at the BIC elbow
+            initial_means: Always None (no warm initialisation for the BIC path)
+            bic_scores: BIC value per tested n_components (for diagnostics)
+    """
+    # Same pre-filtering as the KDE path: drop zeros and non-finite values.
+    data = np.asarray(data).flatten()
+    data = data[(data != 0)]
+    if len(data) < 2 or np.var(data) == 0:
+        return 1, None, np.array([])
+
+    X = data.reshape(-1, 1)
+    max_n = min(GMM_MAX_COMPONENTS, len(data))
+    bic_scores = []
+    for n in range(1, max_n + 1):
+        gmm = GaussianMixture(n_components=n, random_state=GMM_RANDOM_STATE)
+        gmm.fit(X)
+        bic_scores.append(gmm.bic(X))
+    bic_scores = np.array(bic_scores)
+
+    n_components = int(_bic_elbow(bic_scores) + 1)
+
+    # Same exclusion adjustment as the KDE path, for consistent semantics of the
+    # low/zero component when excluding specific genes rather than whole cell types.
+    if exclude_celltypes == "False" and category != "Target":
+        n_components += 1
+
+    return n_components, None, bic_scores
+
+
 # =============================================================================
 # GMM Fitting
 # =============================================================================
 
 
-def fit_gmm(data: np.ndarray, 
-            n_components: str, 
-            category: str, 
-            exclude_celltypes: str):
+def fit_gmm(data: np.ndarray,
+            n_components: str,
+            category: str,
+            exclude_celltypes: str,
+            plot_folder: Optional[str] = None,
+            study_name: Optional[str] = None):
     """Fit GMM to data with specified or auto-determined components.
-    
+
     Args:
         data: Expression data array
-        n_components: Number of components ('auto' or integer string)
+        n_components: Component-selection method: 'auto' (KDE peak detection),
+            'bic' (elbow of the BIC curve, reproducible), or an integer string
+            for a fixed number of components
         category: Category name for logging ('Target' or exclusion category)
         exclude_celltypes: Whether to exclude entire cell types ('True'/'False')
-        
+        plot_folder: Optional output folder for the BIC diagnostic figure
+        study_name: Optional study name used in the diagnostic figure filename
+
     Returns:
-        Fitted GaussianMixture model.    
+        Fitted GaussianMixture model.
     """
     # Filter data for fitting only (training data)
     mask = np.isfinite(data)
@@ -176,6 +272,16 @@ def fit_gmm(data: np.ndarray,
             data_train, exclude_celltypes, category
         )
         print(f"\tOptimal number of components: {optimal_n}")
+    elif n_components == "bic":
+        print(f"Selecting components via BIC elbow for {category}...")
+        optimal_n, estimated_means, bic_scores = find_optimal_gmm_components_bic(
+            data_train, exclude_celltypes, category
+        )
+        print(f"\tBIC-selected number of components: {optimal_n}")
+        if plot_folder is not None and len(bic_scores) > 0:
+            plot_bic_curve(
+                bic_scores, optimal_n, category, plot_folder, study_name
+            )
     else:
         optimal_n, estimated_means = int(n_components), None
         print(f"Using specified components for {category}: {optimal_n}")
