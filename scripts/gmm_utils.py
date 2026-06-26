@@ -149,20 +149,63 @@ def find_optimal_gmm_components(
     return n_peaks, estimated_means
 
 
+def _bic_elbow(bic_scores: np.ndarray) -> int:
+    """Locate the elbow of a BIC-vs-n_components curve.
+
+    Returns the point of maximum perpendicular distance to the straight line
+    joining the first and last points of the curve (the kneedle criterion, the
+    same idea findPC uses on scree plots, PMID 35561205). On expression data the
+    BIC often keeps decreasing as components are added to fit spiky / zero-inflated
+    structure, so its plain minimum can run away to the search boundary; the elbow
+    stops at the point of diminishing returns and is far more robust there, while
+    staying close to the minimum on well-behaved unimodal curves. Fully
+    deterministic.
+
+    Args:
+        bic_scores: BIC values for n_components = 1, 2, ... (in order)
+
+    Returns:
+        Zero-based index of the elbow (add 1 to get the number of components).
+    """
+    bic_scores = np.asarray(bic_scores, dtype=float)
+    n_points = len(bic_scores)
+    if n_points < 3:
+        return int(np.argmin(bic_scores))
+
+    x = np.arange(n_points, dtype=float)
+    x_first, x_last = x[0], x[-1]
+    y_first, y_last = bic_scores[0], bic_scores[-1]
+
+    # Perpendicular distance from each point to the first-last line.
+    numerator = np.abs(
+        (y_last - y_first) * x
+        - (x_last - x_first) * bic_scores
+        + x_last * y_first
+        - y_last * x_first
+    )
+    denominator = np.hypot(y_last - y_first, x_last - x_first)
+    if denominator == 0:
+        return int(np.argmin(bic_scores))
+
+    distances = numerator / denominator
+    return int(np.argmax(distances))
+
+
 def find_optimal_gmm_components_bic(
     data: np.ndarray,
     exclude_celltypes: str,
     category: str,
 ) -> Tuple[int, Optional[np.ndarray], np.ndarray]:
-    """Select the number of GMM components by minimising the BIC.
+    """Select the number of GMM components from the elbow of the BIC curve.
 
     Fits a GaussianMixture for n = 1..GMM_MAX_COMPONENTS with a fixed random
-    state, builds the BIC-vs-n curve, and returns the number of components that
-    minimises the Bayesian Information Criterion. A simulation benchmark on data
-    calibrated to real expression distributions found that the plain minimum-BIC
-    rule recovers the number of populations more reliably than an elbow/kneedle
-    rule (which over-segments), while the fixed random state makes the selection
-    fully reproducible.
+    state, builds the BIC-vs-n curve, and returns the number of components at the
+    elbow (kneedle) of that curve. A simulation benchmark on data calibrated to
+    real expression distributions found the elbow more robust than the plain BIC
+    minimum, which over-segments and runs to the search boundary on spiky /
+    zero-inflated distributions; the elbow recovers the target population at least
+    as well on smooth data and far better on those. The fixed random state makes
+    the selection fully reproducible.
 
     Args:
         data: Expression data array
@@ -171,7 +214,7 @@ def find_optimal_gmm_components_bic(
 
     Returns:
         Tuple of (n_components, initial_means, bic_scores)
-            n_components: Number of components minimising the BIC
+            n_components: Number of components at the BIC elbow
             initial_means: Always None (no warm initialisation for the BIC path)
             bic_scores: BIC value per tested n_components (for diagnostics)
     """
@@ -190,7 +233,7 @@ def find_optimal_gmm_components_bic(
         bic_scores.append(gmm.bic(X))
     bic_scores = np.array(bic_scores)
 
-    n_components = int(np.argmin(bic_scores) + 1)
+    n_components = int(_bic_elbow(bic_scores) + 1)
 
     # Same exclusion adjustment as the KDE path, for consistent semantics of the
     # low/zero component when excluding specific genes rather than whole cell types.
@@ -216,8 +259,8 @@ def fit_gmm(data: np.ndarray,
     Args:
         data: Expression data array
         n_components: Component-selection method: 'auto' (KDE peak detection,
-            reproducible), 'bic' (minimum-BIC, reproducible), or an integer
-            string for a fixed number of components
+            reproducible), 'bic' (elbow of the BIC curve, reproducible), or an
+            integer string for a fixed number of components
         category: Category name for logging ('Target' or exclusion category)
         exclude_celltypes: Whether to exclude entire cell types ('True'/'False')
         plot_folder: Optional output folder for the BIC diagnostic figure
@@ -240,7 +283,7 @@ def fit_gmm(data: np.ndarray,
         )
         print(f"\tOptimal number of components: {optimal_n}")
     elif n_components == "bic":
-        print(f"Selecting components via minimum BIC for {category}...")
+        print(f"Selecting components via BIC elbow for {category}...")
         optimal_n, estimated_means, bic_scores = find_optimal_gmm_components_bic(
             data_train, exclude_celltypes, category
         )

@@ -71,7 +71,7 @@ CV_FOLDS = 5
 CV_TEST_SIZE = 1/3
 """Test set proportion for cross-validation."""
 
-GMM_MAX_COMPONENTS = 10
+GMM_MAX_COMPONENTS = 50
 """Maximum number of components tested when building the BIC curve."""
 
 GMM_RANDOM_STATE = 0
