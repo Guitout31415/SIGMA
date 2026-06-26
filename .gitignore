@@ -11,6 +11,7 @@ __pycache__/
 .Python
 data/
 sandbox/
+test_method/
 results*/
 build/
 develop-eggs/

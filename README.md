@@ -36,8 +36,9 @@ Edit `config_template.conf` to specify:
 
 The number of components for the Gaussian Mixture Models (`n_components_target` and
 `n_components_exclu` in **[Thresholds]**) accepts `auto` (KDE peak detection, default),
-`bic` (reproducible selection at the elbow of the BIC-vs-n_components curve), or a
-fixed integer. With `bic`, a diagnostic BIC curve is saved to the plots folder.
+`bic` (reproducible selection by minimising the BIC over the number of components), or
+a fixed integer. Both `auto` and `bic` are deterministic. With `bic`, a diagnostic BIC
+curve is saved to the plots folder.
 
 ## Usage
 
