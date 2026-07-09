@@ -92,14 +92,14 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--n_components_target",
         type=str,
-        default="auto",
-        help="Number of GMM components for target genes: 'auto' (KDE), 'bic', or an integer.",
+        required=True,
+        help="Number of GMM components for target genes: 'kde', 'bic', or an integer.",
     )
     parser.add_argument(
         "--n_components_exclu",
         type=str,
-        default="auto",
-        help="Number of GMM components for exclude genes: 'auto' (KDE), 'bic', or an integer.",
+        required=True,
+        help="Number of GMM components for exclude genes: 'kde', 'bic', or an integer.",
     )
     parser.add_argument(
         "--min_mean_expression",

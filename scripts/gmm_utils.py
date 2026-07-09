@@ -213,16 +213,20 @@ def find_optimal_gmm_components_bic(
         category: Category name ('Target' or exclusion category)
 
     Returns:
-        Tuple of (n_components, initial_means, bic_scores)
-            n_components: Number of components at the BIC elbow
+        Tuple of (n_components, initial_means, bic_scores, elbow_n)
+            n_components: Number of components used to fit the GMM, i.e. the
+                BIC elbow plus the exclusion adjustment (if any), capped at
+                the number of components actually evaluated on the curve
             initial_means: Always None (no warm initialisation for the BIC path)
             bic_scores: BIC value per tested n_components (for diagnostics)
+            elbow_n: Raw number of components at the BIC elbow, before the
+                exclusion adjustment (for diagnostics/plotting)
     """
     # Same pre-filtering as the KDE path: drop zeros and non-finite values.
     data = np.asarray(data).flatten()
     data = data[(data != 0)]
     if len(data) < 2 or np.var(data) == 0:
-        return 1, None, np.array([])
+        return 1, None, np.array([]), 1
 
     X = data.reshape(-1, 1)
     max_n = min(GMM_MAX_COMPONENTS, len(data))
@@ -233,14 +237,19 @@ def find_optimal_gmm_components_bic(
         bic_scores.append(gmm.bic(X))
     bic_scores = np.array(bic_scores)
 
-    n_components = int(_bic_elbow(bic_scores) + 1)
+    elbow_n = int(_bic_elbow(bic_scores) + 1)
+    n_components = elbow_n
 
     # Same exclusion adjustment as the KDE path, for consistent semantics of the
     # low/zero component when excluding specific genes rather than whole cell types.
     if exclude_celltypes == "False" and category != "Target":
         n_components += 1
 
-    return n_components, None, bic_scores
+    # Never request more components than were actually evaluated on the BIC
+    # curve, or GaussianMixture.fit raises (n_components > n_samples).
+    n_components = min(n_components, max_n)
+
+    return n_components, None, bic_scores, elbow_n
 
 
 # =============================================================================
@@ -254,11 +263,11 @@ def fit_gmm(data: np.ndarray,
             exclude_celltypes: str,
             plot_folder: Optional[str] = None,
             study_name: Optional[str] = None):
-    """Fit GMM to data with specified or auto-determined components.
+    """Fit GMM to data with a specified or automatically selected component count.
 
     Args:
         data: Expression data array
-        n_components: Component-selection method: 'auto' (KDE peak detection,
+        n_components: Component-selection method: 'kde' (KDE peak detection,
             reproducible), 'bic' (elbow of the BIC curve, reproducible), or an
             integer string for a fixed number of components
         category: Category name for logging ('Target' or exclusion category)
@@ -276,21 +285,21 @@ def fit_gmm(data: np.ndarray,
     if len(data_train) < 2:
         return None
 
-    if n_components == "auto":
-        print(f"Automatically determining components for {category}...")
+    if n_components == "kde":
+        print(f"Determining components via KDE peak detection for {category}...")
         optimal_n, estimated_means = find_optimal_gmm_components(
             data_train, exclude_celltypes, category
         )
         print(f"\tOptimal number of components: {optimal_n}")
     elif n_components == "bic":
         print(f"Selecting components via BIC elbow for {category}...")
-        optimal_n, estimated_means, bic_scores = find_optimal_gmm_components_bic(
+        optimal_n, estimated_means, bic_scores, elbow_n = find_optimal_gmm_components_bic(
             data_train, exclude_celltypes, category
         )
         print(f"\tBIC-selected number of components: {optimal_n}")
         if plot_folder is not None and len(bic_scores) > 0:
             plot_bic_curve(
-                bic_scores, optimal_n, category, plot_folder, study_name
+                bic_scores, elbow_n, optimal_n, category, plot_folder, study_name
             )
     else:
         optimal_n, estimated_means = int(n_components), None

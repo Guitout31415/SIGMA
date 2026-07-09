@@ -45,6 +45,7 @@ def plot_gmm_fit_hist(ax: plt.Axes, adata: AnnData, gmm: GaussianMixture, mean_e
 
 def plot_bic_curve(
     bic_scores: np.ndarray,
+    elbow_n: int,
     n_chosen: int,
     category: str,
     plot_folder: str,
@@ -52,13 +53,16 @@ def plot_bic_curve(
 ) -> None:
     """Save the BIC-vs-n_components diagnostic for the BIC selection mode.
 
-    Plots the BIC value for each tested number of components and marks the
-    number selected at the elbow of the curve, documenting the reproducible
-    component-selection step.
+    Plots the BIC value for each tested number of components, marks the
+    elbow of the curve, and (if the exclusion adjustment shifted the final
+    choice away from the elbow) separately marks the number of components
+    actually used to fit the GMM.
 
     Args:
         bic_scores: BIC value per tested n_components (n = 1, 2, ...)
-        n_chosen: Number of components selected at the BIC elbow
+        elbow_n: Number of components at the raw BIC elbow
+        n_chosen: Number of components actually used to fit the GMM (elbow_n
+            plus the exclusion adjustment, if any)
         category: Category name ('Target' or exclusion category)
         plot_folder: Directory to save the plot
         study_name: Name of the study for the filename
@@ -72,11 +76,18 @@ def plot_bic_curve(
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(n_values, bic_scores, "o-", color="black", label="BIC")
     ax.axvline(
-        n_chosen,
+        elbow_n,
         color="red",
         linestyle="--",
-        label=f"Selected: {n_chosen} component(s)",
+        label=f"BIC elbow: {elbow_n} component(s)",
     )
+    if n_chosen != elbow_n:
+        ax.axvline(
+            n_chosen,
+            color="blue",
+            linestyle=":",
+            label=f"Used (after adjustment): {n_chosen} component(s)",
+        )
     ax.set(
         title=f"BIC vs number of GMM components ({category})",
         xlabel="Number of components",
