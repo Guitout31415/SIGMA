@@ -195,7 +195,7 @@ def find_optimal_gmm_components_bic(
     data: np.ndarray,
     exclude_celltypes: str,
     category: str,
-) -> Tuple[int, Optional[np.ndarray], np.ndarray]:
+) -> Tuple[int, Optional[np.ndarray], np.ndarray, int]:
     """Select the number of GMM components from the elbow of the BIC curve.
 
     Fits a GaussianMixture for n = 1..GMM_MAX_COMPONENTS with a fixed random
