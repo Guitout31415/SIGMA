@@ -382,29 +382,22 @@ def identify_target_components(
             )
             return -1
 
-        # Find components close to target using Ashmann distance
-        means_components = [float(m) for m in gmm.means_.flatten()] 
+        # Group with the target every component that is close to it
+        # (Ashmann distance below threshold) and above the minimum-mean
+        # threshold. The low/zero-expression component is excluded through
+        # its mean, never through its index, which carries no meaning.
+        means = gmm.means_.flatten()
         target_indices = [int(i_target_component)]
-        means_components[i_target_component] = -1 # Remove the highest mean to find others
-
-        i_target_previous = np.argmax(means_components) # Previous highest mean
         mean_targ = gmm.means_[i_target_component][0]
         std_targ = np.sqrt(gmm.covariances_[i_target_component][0][0])
 
-        while i_target_previous > 0 and means_components[i_target_previous] >= min_mean_expression:
-            mean_prev = gmm.means_[i_target_previous][0]
-            std_prev = np.sqrt(gmm.covariances_[i_target_previous][0][0])
+        for i in range(gmm.n_components):
+            if i == i_target_component or means[i] < min_mean_expression:
+                continue
 
-            if ashmann_distance(mean_prev, mean_targ, std_prev, std_targ) > ASHMANN_DISTANCE_THRESHOLD:
-                break
-
-            target_indices.append(i_target_previous)
-            means_components[i_target_previous] = -1
-
-            # mean_targ = gmm.means_[i_target_previous][0]
-            # std_targ = np.sqrt(gmm.covariances_[i_target_previous][0][0])
-
-            i_target_previous = np.argmax(means_components)
+            std_i = np.sqrt(gmm.covariances_[i][0][0])
+            if ashmann_distance(means[i], mean_targ, std_i, std_targ) < ASHMANN_DISTANCE_THRESHOLD:
+                target_indices.append(i)
     else:
         print("Excluding specific 'low' genes based on exclude genes...")
         target_indices = np.argmin(gmm.means_.flatten()).tolist()
