@@ -21,6 +21,15 @@ conda activate SIGMA
 pip install snakemake
 ```
 
+### Comparison figures environment
+
+Regenerating the comparison figures requires a dedicated environment:
+
+```bash
+conda env create -f compare_environement.yml
+conda activate compare_environement
+```
+
 ## Configuration
 
 Edit `config_template.conf` to specify:
