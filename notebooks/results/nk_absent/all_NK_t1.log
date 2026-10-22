@@ -1,0 +1,43 @@
+
+====================================
+Beginning target cell identification...
+====================================
+
+--- 1. Finding Gene Aliases ---
+Available candidate genes: {'KLRF1', 'NCR1', 'SH2D1B'}
+Available target genes: {'GNLY', 'PRF1', 'KLRC1', 'NCAM1', 'FCGR3A', 'SH2D1B', 'GZMB', 'NCR1', 'KLRF1', 'NKG7'}
+Available exclude genes for T_cells: {'TRBC1', 'TRBC2', 'CD28', 'CD3E', 'CD5', 'CD3D', 'CD3G', 'TRAC'}
+Available exclude genes for B_cells: {'CD79A', 'PAX5', 'CD79B', 'CD19', 'MS4A1'}
+Available exclude genes for Monocytes: {'S100A9', 'CST3', 'CD14', 'LYZ', 'S100A8', 'FCN1'}
+Step 1 completed in 71.68 seconds
+
+--- 2. Find candidate cells ---
+Keeping cells expressing >= 2 candidate genes, each above threshold 1.
+Number of candidate cells: 1054 (3.82%)
+Step 2 completed in 4.42 seconds
+Determining components via KDE peak detection for Target...
+	Optimal number of components: 1
+
+--- 3bis. Fitting GMM for Exclude genes ---
+Determining components via KDE peak detection for T_cells...
+	Optimal number of components: 6
+Determining components via KDE peak detection for B_cells...
+	Optimal number of components: 2
+Determining components via KDE peak detection for Monocytes...
+	Optimal number of components: 6
+
+Calculating exclusion probabilities for category: T_cells
+
+Calculating exclusion probabilities for category: B_cells
+
+Calculating exclusion probabilities for category: Monocytes
+
+--- 5. Calculating final target score ---
+Step 5 completed in 0.00 seconds
+Target plots saved to: /home/lemgui01/SIGMA/notebooks/results/nk_absent/plots/all_NK_t1/all_NK_t1_target.png
+Exclusion plots saved to: /home/lemgui01/SIGMA/notebooks/results/nk_absent/plots/all_NK_t1/all_NK_t1_exclude.png
+
+------------------------------------
+Extraction complete.
+Saving final AnnData object to: /home/lemgui01/SIGMA/notebooks/results/nk_absent/all_NK_t1.h5ad
+Total execution time: 160.89 seconds

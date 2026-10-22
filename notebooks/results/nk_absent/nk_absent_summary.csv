@@ -1,0 +1,5 @@
+run,input,detection_threshold,cells_in,nk_in,candidates,target_passed_M,selected,selected_nk,selected_ambiguous,selected_other,recall_nk,precision_nk
+all_NK,all_NK,2,27620,3984,171,True,168,158,3,7,0.03965863453815261,0.9404761904761905
+no_NK,no_NK,2,23421,0,10,True,0,0,0,0,,
+all_NK_t1,all_NK,1,27620,3984,1054,True,990,903,21,66,0.22665662650602408,0.9121212121212121
+no_NK_t1,no_NK,1,23421,0,117,True,0,0,0,0,,

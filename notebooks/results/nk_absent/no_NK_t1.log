@@ -1,0 +1,47 @@
+
+====================================
+Beginning target cell identification...
+====================================
+
+--- 1. Finding Gene Aliases ---
+Available candidate genes: {'KLRF1', 'SH2D1B', 'NCR1'}
+Available target genes: {'NCAM1', 'KLRF1', 'NCR1', 'SH2D1B', 'GZMB', 'NKG7', 'GNLY', 'KLRC1', 'FCGR3A', 'PRF1'}
+Available exclude genes for T_cells: {'TRAC', 'TRBC1', 'CD28', 'CD3G', 'TRBC2', 'CD3E', 'CD5', 'CD3D'}
+Available exclude genes for B_cells: {'CD19', 'CD79A', 'CD79B', 'PAX5', 'MS4A1'}
+Available exclude genes for Monocytes: {'CD14', 'LYZ', 'S100A8', 'CST3', 'S100A9', 'FCN1'}
+Step 1 completed in 74.00 seconds
+
+--- 2. Find candidate cells ---
+Keeping cells expressing >= 2 candidate genes, each above threshold 1.
+Number of candidate cells: 117 (0.50%)
+Step 2 completed in 3.76 seconds
+Determining components via KDE peak detection for Target...
+	Optimal number of components: 1
+
+--- 3bis. Fitting GMM for Exclude genes ---
+Determining components via KDE peak detection for T_cells...
+	Optimal number of components: 1
+Determining components via KDE peak detection for B_cells...
+	Optimal number of components: 1
+Determining components via KDE peak detection for Monocytes...
+	Optimal number of components: 1
+
+Calculating exclusion probabilities for category: T_cells
+
+Calculating exclusion probabilities for category: B_cells
+Target component mean (1.0622) is below threshold (2.0).
+No valid exclusion components identified for B_cells. Setting proba_B_cells to 0.
+
+Calculating exclusion probabilities for category: Monocytes
+Target component mean (1.4369) is below threshold (2.0).
+No valid exclusion components identified for Monocytes. Setting proba_Monocytes to 0.
+
+--- 5. Calculating final target score ---
+Step 5 completed in 0.00 seconds
+Target plots saved to: /home/lemgui01/SIGMA/notebooks/results/nk_absent/plots/no_NK_t1/no_NK_t1_target.png
+Exclusion plots saved to: /home/lemgui01/SIGMA/notebooks/results/nk_absent/plots/no_NK_t1/no_NK_t1_exclude.png
+
+------------------------------------
+Extraction complete.
+Saving final AnnData object to: /home/lemgui01/SIGMA/notebooks/results/nk_absent/no_NK_t1.h5ad
+Total execution time: 143.58 seconds
