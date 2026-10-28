@@ -221,7 +221,8 @@ def plot_exclude_figures(
         pass
 
     nrows = len(gmm_exclude.keys())+1
-    fig, ax = plt.subplots(nrows,2, figsize=(20, 5*nrows))
+    # squeeze=False keeps ax 2-D even when gmm_exclude is empty (nrows == 1)
+    fig, ax = plt.subplots(nrows,2, figsize=(20, 5*nrows), squeeze=False)
 
     nrow = 0
     for category, gmm in gmm_exclude.items():
