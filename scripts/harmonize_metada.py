@@ -253,6 +253,57 @@ def _export_harmonized_file(
     st.session_state.exported_files.add(base_name)
 
 
+def export_all_already_harmonized(
+    uploaded_files: list,
+    columns_list: list,
+    outdir: str,
+    keep_all_columns: bool = False,
+) -> None:
+    """Export every file using the standard names as column names directly.
+
+    For datasets whose obs tables already share the same column names, so no
+    manual mapping is needed.
+
+    Args:
+        uploaded_files: List of file objects to export
+        columns_list: List of standard column names
+        outdir: Output directory path
+        keep_all_columns: If True, ignore columns_list and keep obs unchanged
+    """
+    os.makedirs(outdir, exist_ok=True)
+    standards_list = columns_list if columns_list else DEFAULT_STANDARDS
+
+    progress = st.progress(0.0)
+    for i, data_file in enumerate(uploaded_files):
+        base_name = os.path.basename(data_file.name)
+        base_name_no_ext = os.path.splitext(base_name)[0]
+        export_path = os.path.join(outdir, f"{base_name_no_ext}.h5ad")
+
+        adata = sc.read_h5ad(data_file.name)
+        adata.var_names_make_unique()
+        obs = adata.obs.copy()
+
+        if adata.n_obs == 0:
+            adata.write(export_path)
+            st.info(f"{base_name}: empty file, saved as is.")
+            st.session_state.exported_files.add(base_name)
+        elif keep_all_columns:
+            adata.write(export_path)
+            st.success(f"File {export_path} saved successfully.")
+            st.session_state.exported_files.add(base_name)
+        else:
+            mapping = {
+                std: (std if std in obs.columns else None)
+                for std in standards_list
+            }
+            missing = [std for std, col in mapping.items() if col is None]
+            if missing:
+                st.warning(f"{base_name}: missing column(s) {', '.join(missing)}")
+            _export_harmonized_file(adata, obs, mapping, export_path, base_name)
+
+        progress.progress((i + 1) / len(uploaded_files))
+
+
 # =============================================================================
 # Navigation UI
 # =============================================================================
@@ -389,6 +440,23 @@ def main() -> None:
                 ]
 
         if uploaded_files:
+            if st.button(
+                "Metadata already harmonized: export all files",
+                key="export_all_harmonized",
+                help="Use the standard names as column names in every file, "
+                     "without manual mapping.",
+            ):
+                export_all_already_harmonized(uploaded_files, columns_list, outdir)
+            if st.button(
+                "Metadata already harmonized: export all files, keep all columns",
+                key="export_all_harmonized_keep_all",
+                help="Ignore the standard names and keep every obs column "
+                     "as is in every file.",
+            ):
+                export_all_already_harmonized(
+                    uploaded_files, columns_list, outdir, keep_all_columns=True
+                )
+
             active = render_navigation(uploaded_files)
             harmonize_interface(uploaded_files[active], columns_list, active, outdir)
         else:
